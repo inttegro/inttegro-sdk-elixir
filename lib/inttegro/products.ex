@@ -4,6 +4,21 @@ defmodule Inttegro.Products do
   @moduledoc Inttegro.Docs.resource_doc(__MODULE__)
   alias Inttegro.Client
 
+  @doc "Reports whether the product is archived."
+  @spec archived?(Inttegro.Products.Product.t()) :: boolean()
+  def archived?(%Inttegro.Products.Product{archived_at: archived_at}),
+    do: not is_nil(archived_at)
+
+  @doc "Reports whether the product is currently published and available."
+  @spec published?(Inttegro.Products.Product.t()) :: boolean()
+  def published?(%Inttegro.Products.Product{} = product),
+    do: product.active and not archived?(product)
+
+  @doc "Reports whether the product has a recorded first publication."
+  @spec ever_published?(Inttegro.Products.Product.t()) :: boolean()
+  def ever_published?(%Inttegro.Products.Product{published_at: published_at}),
+    do: not is_nil(published_at)
+
   @doc """
   Creates a new product in your catalog. Products represent items you sell—physical goods, digital downloads, services, or subscriptions. Each product includes pricing, description, and fulfillment details. Product types: - **physical**: Tangible goods requiring shipping (requires shipment details) - **digital**: Electronic content (e-books, software, media) delivered via download/stream - **service**: Intangible offerings (consulting, subscriptions, memberships) - **voucher**: Gift cards, credits, or promotional codes - **custom**: Custom product types for specialized use cases - **cause**: Donation or charitable contribution products
 

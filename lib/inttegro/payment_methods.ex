@@ -4,6 +4,21 @@ defmodule Inttegro.PaymentMethods do
   @moduledoc Inttegro.Docs.resource_doc(__MODULE__)
   alias Inttegro.Client
 
+  @doc "Reports whether the payment method is archived."
+  @spec archived?(Inttegro.PaymentMethods.PaymentMethod.t()) :: boolean()
+  def archived?(%Inttegro.PaymentMethods.PaymentMethod{archived_at: archived_at}),
+    do: not is_nil(archived_at)
+
+  @doc "Reports whether payment-method ownership has been verified."
+  @spec verified?(Inttegro.PaymentMethods.PaymentMethod.t()) :: boolean()
+  def verified?(%Inttegro.PaymentMethods.PaymentMethod{verified_at: verified_at}),
+    do: not is_nil(verified_at)
+
+  @doc "Reports whether the payment method may be reused in new payment flows."
+  @spec reusable?(Inttegro.PaymentMethods.PaymentMethod.t()) :: boolean()
+  def reusable?(%Inttegro.PaymentMethods.PaymentMethod{} = method),
+    do: method.active and not archived?(method) and method.ephemeral != true
+
   @doc """
   Save a mobile-money payment method for an existing customer without charging it. Direct tokenization currently supports `mobile_money`; send the wallet details and owner identity described by the request schema. The returned payment method can be reused only while it is active, unarchived, and non-ephemeral. This operation supports idempotency.
 

@@ -33,16 +33,6 @@ defmodule Inttegro.Money do
   """
 end
 
-defmodule Inttegro.Payments do
-  @moduledoc """
-  Payment state, attempts, confirmation requirements, and next actions attached to an order.
-
-  These modules describe values returned through `Inttegro.Orders`; payment state may change after
-  an operation returns. Inspect the order's latest payment state and follow its documented next
-  action rather than treating request completion as proof of payment.
-  """
-end
-
 defmodule Inttegro.Shared do
   @moduledoc Inttegro.Docs.namespace_doc(__MODULE__)
 end

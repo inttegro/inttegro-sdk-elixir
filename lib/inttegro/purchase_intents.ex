@@ -4,6 +4,27 @@ defmodule Inttegro.PurchaseIntents do
   @moduledoc Inttegro.Docs.resource_doc(__MODULE__)
   alias Inttegro.Client
 
+  @doc "Reports whether the purchase intent is currently active."
+  @spec active?(Inttegro.PurchaseIntents.PurchaseIntent.t()) :: boolean()
+  def active?(%Inttegro.PurchaseIntents.PurchaseIntent{status: status}),
+    do: status in [:active, "active"]
+
+  @doc "Reports whether the purchase intent can create at most one order."
+  @spec single_use?(Inttegro.PurchaseIntents.PurchaseIntent.t()) :: boolean()
+  def single_use?(%Inttegro.PurchaseIntents.PurchaseIntent{usage: usage}),
+    do: usage.single_use == true
+
+  @doc "Returns the order ID that consumed a single-use purchase intent."
+  @spec used_order_id(Inttegro.PurchaseIntents.PurchaseIntent.t()) :: String.t() | nil
+  def used_order_id(%Inttegro.PurchaseIntents.PurchaseIntent{} = intent) do
+    order = if single_use?(intent), do: intent.usage.order
+
+    case order do
+      %{id: id} when is_binary(id) and id != "" -> id
+      _ -> nil
+    end
+  end
+
   @doc """
   Creates a controlled, shareable Buy link for a catalog product without requiring you to build a product page, cart, or checkout UI. The returned `sale_...` ID becomes `https://pages.inttegro.com/buy/{purchase_intent_id}`. An order is created only when a customer checks out from that link. This operation supports idempotency. Reuse the same `Idempotency-Key` and request body when retrying an uncertain request.
 
