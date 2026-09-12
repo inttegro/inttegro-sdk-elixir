@@ -152,7 +152,7 @@ defmodule Inttegro.PurchaseIntents do
   end
 
   @doc """
-  Resolves the offer behind a hosted Buy link using only its opaque ID. Public lookup requires no API key and returns active or expired intents; canceled and used single-use intents are returned as not found. When the owning application authenticates the request, lookup is application-scoped, returns all lifecycle states, and may include recent activity.
+  Resolves the offer behind a hosted Buy link using only its opaque ID. Public lookup requires no API key and returns active or expired intents; canceled and used single-use intents are returned as not found. When the owning application authenticates the request, lookup is application-scoped and returns all lifecycle states.
 
   ## Parameters
 
