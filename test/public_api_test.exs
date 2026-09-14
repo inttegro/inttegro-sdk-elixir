@@ -172,6 +172,22 @@ defmodule Inttegro.PublicAPITest do
     assert %DateTime{} = intent.created_at
   end
 
+  test "payout settings expose known destinations statically" do
+    settings =
+      Inttegro.Payouts.SettingsMutation.from_map(%{
+        "destinations" => %{"ghs" => "fa_123"},
+        "fx_enabled" => true,
+        "id" => "settings_123"
+      })
+
+    assert settings.destinations.ghs == "fa_123"
+    assert settings.fx_enabled
+
+    assert Inttegro.Payouts.SettingsMutation.to_map(settings)["destinations"] == %{
+             "ghs" => "fa_123"
+           }
+  end
+
   test "public reference modules contain meaningful documentation" do
     {:ok, modules} = :application.get_key(:inttegro, :modules)
 
