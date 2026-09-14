@@ -146,17 +146,6 @@ defmodule Inttegro.PublicAPITest do
   test "purchase intent exposes nested response types" do
     intent =
       Inttegro.PurchaseIntents.PurchaseIntent.from_map(%{
-        "activity" => %{
-          "recent" => [
-            %{
-              "created_at" => "2026-09-09T12:01:00Z",
-              "id" => "saleevt_123",
-              "purchase_intent_id" => "sale_123",
-              "type" => "viewed",
-              "visitor" => %{"ip_address" => "203.0.113.7"}
-            }
-          ]
-        },
         "allow_variants" => false,
         "created_at" => "2026-09-09T12:00:00Z",
         "id" => "sale_123",
@@ -177,11 +166,26 @@ defmodule Inttegro.PublicAPITest do
         }
       })
 
-    assert hd(intent.activity.recent).visitor.ip_address == "203.0.113.7"
     assert intent.merchant.organization_name == "Tea House Ltd"
     assert intent.product.dimensions.digital.bytes == 1_024
     assert intent.usage.order.id == "or_123"
     assert %DateTime{} = intent.created_at
+  end
+
+  test "payout settings expose known destinations statically" do
+    settings =
+      Inttegro.Payouts.SettingsMutation.from_map(%{
+        "destinations" => %{"ghs" => "fa_123"},
+        "fx_enabled" => true,
+        "id" => "settings_123"
+      })
+
+    assert settings.destinations.ghs == "fa_123"
+    assert settings.fx_enabled
+
+    assert Inttegro.Payouts.SettingsMutation.to_map(settings)["destinations"] == %{
+             "ghs" => "fa_123"
+           }
   end
 
   test "public reference modules contain meaningful documentation" do

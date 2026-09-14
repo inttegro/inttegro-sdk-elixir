@@ -1,35 +1,5 @@
 # Generated Inttegro types for this domain. Do not edit manually.
 
-defmodule Inttegro.PurchaseIntents.ActivityType do
-  @moduledoc Inttegro.Docs.module_doc(__MODULE__, :enum)
-  @typedoc Inttegro.Docs.type_doc(__MODULE__, :enum)
-  @type t ::
-          :expired_viewed
-          | :order_created
-          | :payment_failed
-          | :payment_started
-          | :viewed
-          | String.t()
-  @values %{
-    expired_viewed: "expired_viewed",
-    order_created: "order_created",
-    payment_failed: "payment_failed",
-    payment_started: "payment_started",
-    viewed: "viewed"
-  }
-  @doc Inttegro.Docs.enum_values_doc(__MODULE__)
-  @spec values() :: [t()]
-  def values, do: Map.keys(@values)
-  @doc false
-  @spec encode(t()) :: String.t()
-  def encode(value) when is_atom(value), do: Map.fetch!(@values, value)
-  def encode(value) when is_binary(value), do: value
-  @doc false
-  @spec decode(String.t()) :: t()
-  def decode(value),
-    do: Enum.find_value(@values, value, fn {key, wire} -> if wire == value, do: key end)
-end
-
 defmodule Inttegro.PurchaseIntents.Status do
   @moduledoc Inttegro.Docs.module_doc(__MODULE__, :enum)
   @typedoc Inttegro.Docs.type_doc(__MODULE__, :enum)
@@ -435,8 +405,7 @@ end
 defmodule Inttegro.PurchaseIntents.PurchaseIntent do
   @moduledoc Inttegro.Docs.module_doc(__MODULE__, :domain)
   @enforce_keys [:allow_variants, :created_at, :id, :quantity, :status, :usage]
-  defstruct activity: nil,
-            allow_variants: nil,
+  defstruct allow_variants: nil,
             created_at: nil,
             expires_at: nil,
             id: nil,
@@ -452,7 +421,6 @@ defmodule Inttegro.PurchaseIntents.PurchaseIntent do
 
   @typedoc Inttegro.Docs.type_doc(__MODULE__, :domain)
   @type t :: %__MODULE__{
-          activity: Inttegro.PurchaseIntents.ActivityLog.t() | nil,
           allow_variants: boolean(),
           created_at: DateTime.t(),
           expires_at: DateTime.t() | nil,
@@ -474,11 +442,6 @@ defmodule Inttegro.PurchaseIntents.PurchaseIntent do
   @spec from_map(map()) :: t()
   def from_map(map) when is_map(map) do
     %__MODULE__{
-      activity:
-        if(is_nil(Map.get(map, "activity")),
-          do: nil,
-          else: Inttegro.PurchaseIntents.ActivityLog.from_map(Map.get(map, "activity"))
-        ),
       allow_variants: Map.fetch!(map, "allow_variants"),
       created_at: Inttegro.Codec.decode_timestamp(Map.fetch!(map, "created_at")),
       expires_at:
@@ -527,8 +490,6 @@ defmodule Inttegro.PurchaseIntents.PurchaseIntent do
   @spec to_map(t()) :: map()
   def to_map(value) do
     %{
-      "activity" =>
-        if(is_nil(value.activity), do: nil, else: Inttegro.Codec.encode(value.activity)),
       "allow_variants" => Inttegro.Codec.encode(value.allow_variants),
       "created_at" => Inttegro.Codec.encode(value.created_at),
       "expires_at" =>
@@ -550,255 +511,6 @@ defmodule Inttegro.PurchaseIntents.PurchaseIntent do
     }
     |> Enum.reject(fn {_key, item} -> is_nil(item) end)
     |> Map.new()
-  end
-end
-
-defmodule Inttegro.PurchaseIntents.ActivityLog do
-  @moduledoc Inttegro.Docs.module_doc(__MODULE__, :domain)
-  defstruct recent: nil
-
-  @typedoc Inttegro.Docs.type_doc(__MODULE__, :domain)
-  @type t :: %__MODULE__{
-          recent: [Inttegro.PurchaseIntents.Activity.t()] | nil
-        }
-  @doc Inttegro.Docs.constructor_doc(__MODULE__)
-  @spec new!(map() | keyword()) :: t()
-  def new!(attrs \\ %{}), do: struct!(__MODULE__, attrs)
-  @doc false
-  @spec from_map(map()) :: t()
-  def from_map(map) when is_map(map) do
-    %__MODULE__{
-      recent:
-        if(is_nil(Map.get(map, "recent")),
-          do: nil,
-          else:
-            Enum.map(Map.get(map, "recent"), fn item ->
-              Inttegro.PurchaseIntents.Activity.from_map(item)
-            end)
-        )
-    }
-  end
-
-  @doc false
-  @spec to_map(t()) :: map()
-  def to_map(value) do
-    %{
-      "recent" =>
-        if(is_nil(value.recent),
-          do: nil,
-          else: Enum.map(value.recent, fn item -> Inttegro.Codec.encode(item) end)
-        )
-    }
-    |> Enum.reject(fn {_key, item} -> is_nil(item) end)
-    |> Map.new()
-  end
-end
-
-defmodule Inttegro.PurchaseIntents.Activity do
-  @moduledoc Inttegro.Docs.module_doc(__MODULE__, :domain)
-  @enforce_keys [:created_at, :id, :purchase_intent_id, :type]
-  defstruct amount: nil,
-            attribution: nil,
-            created_at: nil,
-            error_code: nil,
-            id: nil,
-            order_id: nil,
-            payment_id: nil,
-            product_id: nil,
-            purchase_intent_id: nil,
-            quantity: nil,
-            source: nil,
-            type: nil,
-            variant_product_id: nil,
-            visitor: nil
-
-  @typedoc Inttegro.Docs.type_doc(__MODULE__, :domain)
-  @type t :: %__MODULE__{
-          amount: Inttegro.Money.Amount.t() | nil,
-          attribution: Inttegro.PurchaseIntents.ActivityAttribution.t() | nil,
-          created_at: DateTime.t(),
-          error_code: String.t() | nil,
-          id: String.t(),
-          order_id: String.t() | nil,
-          payment_id: String.t() | nil,
-          product_id: String.t() | nil,
-          purchase_intent_id: String.t(),
-          quantity: integer() | nil,
-          source: String.t() | nil,
-          type: Inttegro.PurchaseIntents.ActivityType.t(),
-          variant_product_id: String.t() | nil,
-          visitor: Inttegro.PurchaseIntents.ActivityVisitor.t() | nil
-        }
-  @doc Inttegro.Docs.constructor_doc(__MODULE__)
-  @spec new!(map() | keyword()) :: t()
-  def new!(attrs \\ %{}), do: struct!(__MODULE__, attrs)
-  @doc false
-  @spec from_map(map()) :: t()
-  def from_map(map) when is_map(map) do
-    %__MODULE__{
-      amount:
-        if(is_nil(Map.get(map, "amount")),
-          do: nil,
-          else: Inttegro.Money.Amount.from_map(Map.get(map, "amount"))
-        ),
-      attribution:
-        if(is_nil(Map.get(map, "attribution")),
-          do: nil,
-          else: Inttegro.PurchaseIntents.ActivityAttribution.from_map(Map.get(map, "attribution"))
-        ),
-      created_at: Inttegro.Codec.decode_timestamp(Map.fetch!(map, "created_at")),
-      error_code: Map.get(map, "error_code"),
-      id: Map.fetch!(map, "id"),
-      order_id: Map.get(map, "order_id"),
-      payment_id: Map.get(map, "payment_id"),
-      product_id: Map.get(map, "product_id"),
-      purchase_intent_id: Map.fetch!(map, "purchase_intent_id"),
-      quantity: Map.get(map, "quantity"),
-      source: Map.get(map, "source"),
-      type: Inttegro.PurchaseIntents.ActivityType.decode(Map.fetch!(map, "type")),
-      variant_product_id: Map.get(map, "variant_product_id"),
-      visitor:
-        if(is_nil(Map.get(map, "visitor")),
-          do: nil,
-          else: Inttegro.PurchaseIntents.ActivityVisitor.from_map(Map.get(map, "visitor"))
-        )
-    }
-  end
-
-  @doc false
-  @spec to_map(t()) :: map()
-  def to_map(value) do
-    %{
-      "amount" => if(is_nil(value.amount), do: nil, else: Inttegro.Codec.encode(value.amount)),
-      "attribution" =>
-        if(is_nil(value.attribution), do: nil, else: Inttegro.Codec.encode(value.attribution)),
-      "created_at" => Inttegro.Codec.encode(value.created_at),
-      "error_code" => value.error_code,
-      "id" => Inttegro.Codec.encode(value.id),
-      "order_id" => value.order_id,
-      "payment_id" => value.payment_id,
-      "product_id" => value.product_id,
-      "purchase_intent_id" => Inttegro.Codec.encode(value.purchase_intent_id),
-      "quantity" => value.quantity,
-      "source" => value.source,
-      "type" => Inttegro.PurchaseIntents.ActivityType.encode(value.type),
-      "variant_product_id" => value.variant_product_id,
-      "visitor" => if(is_nil(value.visitor), do: nil, else: Inttegro.Codec.encode(value.visitor))
-    }
-    |> Enum.reject(fn {_key, item} -> is_nil(item) end)
-    |> Map.new()
-  end
-end
-
-defmodule Inttegro.PurchaseIntents.ActivityAttribution do
-  @moduledoc Inttegro.Docs.module_doc(__MODULE__, :domain)
-  defstruct campaign: nil,
-            channel: nil,
-            content: nil,
-            landing_url: nil,
-            medium: nil,
-            referrer: nil,
-            referrer_host: nil,
-            source: nil,
-            term: nil
-
-  @typedoc Inttegro.Docs.type_doc(__MODULE__, :domain)
-  @type t :: %__MODULE__{
-          campaign: String.t() | nil,
-          channel: String.t() | nil,
-          content: String.t() | nil,
-          landing_url: String.t() | nil,
-          medium: String.t() | nil,
-          referrer: String.t() | nil,
-          referrer_host: String.t() | nil,
-          source: String.t() | nil,
-          term: String.t() | nil
-        }
-  @doc Inttegro.Docs.constructor_doc(__MODULE__)
-  @spec new!(map() | keyword()) :: t()
-  def new!(attrs \\ %{}), do: struct!(__MODULE__, attrs)
-  @doc false
-  @spec from_map(map()) :: t()
-  def from_map(map) when is_map(map) do
-    %__MODULE__{
-      campaign: Map.get(map, "campaign"),
-      channel: Map.get(map, "channel"),
-      content: Map.get(map, "content"),
-      landing_url: Map.get(map, "landing_url"),
-      medium: Map.get(map, "medium"),
-      referrer: Map.get(map, "referrer"),
-      referrer_host: Map.get(map, "referrer_host"),
-      source: Map.get(map, "source"),
-      term: Map.get(map, "term")
-    }
-  end
-
-  @doc false
-  @spec to_map(t()) :: map()
-  def to_map(value) do
-    value
-    |> Map.from_struct()
-    |> Enum.reject(fn {_key, item} -> is_nil(item) end)
-    |> Map.new(fn {key, item} -> {Atom.to_string(key), item} end)
-  end
-end
-
-defmodule Inttegro.PurchaseIntents.ActivityVisitor do
-  @moduledoc Inttegro.Docs.module_doc(__MODULE__, :domain)
-  defstruct browser: nil,
-            city: nil,
-            country: nil,
-            device: nil,
-            ip_address: nil,
-            os: nil,
-            region: nil,
-            session_id: nil,
-            timezone: nil,
-            user_agent: nil,
-            visitor_id: nil
-
-  @typedoc Inttegro.Docs.type_doc(__MODULE__, :domain)
-  @type t :: %__MODULE__{
-          browser: String.t() | nil,
-          city: String.t() | nil,
-          country: String.t() | nil,
-          device: String.t() | nil,
-          ip_address: String.t() | nil,
-          os: String.t() | nil,
-          region: String.t() | nil,
-          session_id: String.t() | nil,
-          timezone: String.t() | nil,
-          user_agent: String.t() | nil,
-          visitor_id: String.t() | nil
-        }
-  @doc Inttegro.Docs.constructor_doc(__MODULE__)
-  @spec new!(map() | keyword()) :: t()
-  def new!(attrs \\ %{}), do: struct!(__MODULE__, attrs)
-  @doc false
-  @spec from_map(map()) :: t()
-  def from_map(map) when is_map(map) do
-    %__MODULE__{
-      browser: Map.get(map, "browser"),
-      city: Map.get(map, "city"),
-      country: Map.get(map, "country"),
-      device: Map.get(map, "device"),
-      ip_address: Map.get(map, "ip_address"),
-      os: Map.get(map, "os"),
-      region: Map.get(map, "region"),
-      session_id: Map.get(map, "session_id"),
-      timezone: Map.get(map, "timezone"),
-      user_agent: Map.get(map, "user_agent"),
-      visitor_id: Map.get(map, "visitor_id")
-    }
-  end
-
-  @doc false
-  @spec to_map(t()) :: map()
-  def to_map(value) do
-    value
-    |> Map.from_struct()
-    |> Enum.reject(fn {_key, item} -> is_nil(item) end)
-    |> Map.new(fn {key, item} -> {Atom.to_string(key), item} end)
   end
 end
 

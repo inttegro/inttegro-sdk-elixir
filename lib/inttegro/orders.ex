@@ -4,6 +4,39 @@ defmodule Inttegro.Orders do
   @moduledoc Inttegro.Docs.resource_doc(__MODULE__)
   alias Inttegro.Client
 
+  @doc "Reports whether the order has recorded payment, including after completion."
+  @spec paid?(Inttegro.Orders.Order.t()) :: boolean()
+  def paid?(%Inttegro.Orders.Order{status: status, paid_at: paid_at}),
+    do: status in [:paid, "paid"] or not is_nil(paid_at)
+
+  @doc "Reports whether the order is waiting for payment."
+  @spec requires_payment?(Inttegro.Orders.Order.t()) :: boolean()
+  def requires_payment?(%Inttegro.Orders.Order{status: status}),
+    do: status in [:requires_payment, "requires_payment"]
+
+  @doc "Reports whether the order has reached a final state."
+  @spec terminal?(Inttegro.Orders.Order.t()) :: boolean()
+  def terminal?(%Inttegro.Orders.Order{status: status}),
+    do:
+      status in [
+        :paid,
+        :completed,
+        :canceled,
+        :expired,
+        "paid",
+        "completed",
+        "canceled",
+        "expired"
+      ]
+
+  @doc "Returns nested action details when the order payment requires action."
+  @spec required_payment_action(Inttegro.Orders.Order.t()) ::
+          Inttegro.Payments.NextAction.t() | nil
+  def required_payment_action(%Inttegro.Orders.Order{payment: nil}), do: nil
+
+  def required_payment_action(%Inttegro.Orders.Order{payment: payment}),
+    do: Inttegro.Payments.required_action(payment)
+
   @doc """
   Creates a new order in Inttegro. This endpoint supports two flows: 1. New customer flow: Provide `customer_data` to create a new customer and order 2. Existing customer flow: Provide `customer_id` and optionally `payment_method_id` for known customers The order can be configured to execute payment immediately or require manual payment later.
 

@@ -1,5 +1,14 @@
 # Changelog
 
+## 0.4.0
+
+- Breaking: replaced payout maps and generic payloads with named request,
+  response, settings, page, error, and destination structs.
+- Made `ghs` the explicit supported payout-destination field and exposed payout
+  timestamps as `DateTime` values.
+- Added fluent resource semantics and removed server-internal purchase-intent
+  activity response models.
+
 ## 0.3.0
 
 - Breaking: replaced generic maps with named structs for balances, purchase intents, products, payment methods, payments, and orders.
