@@ -463,6 +463,37 @@ defmodule Inttegro.Payouts.Page do
   end
 end
 
+defmodule Inttegro.Payouts.Destinations do
+  @moduledoc """
+  Financial accounts configured to receive payouts in supported currencies.
+
+  Each field is a known currency route from the Inttegro payout contract. Use
+  `ghs` for the financial account that receives Ghana cedi payouts.
+  """
+  defstruct ghs: nil
+
+  @typedoc "A statically typed set of payout destinations."
+  @type t :: %__MODULE__{ghs: String.t() | nil}
+
+  @doc Inttegro.Docs.constructor_doc(__MODULE__)
+  @spec new!(map() | keyword()) :: t()
+  def new!(attrs \\ %{}), do: struct!(__MODULE__, attrs)
+
+  @doc false
+  @spec from_map(map()) :: t()
+  def from_map(map) when is_map(map) do
+    %__MODULE__{ghs: Map.get(map, "ghs")}
+  end
+
+  @doc false
+  @spec to_map(t()) :: map()
+  def to_map(value) do
+    %{"ghs" => value.ghs}
+    |> Enum.reject(fn {_key, item} -> is_nil(item) end)
+    |> Map.new()
+  end
+end
+
 defmodule Inttegro.Payouts.SettingsLookup do
   @moduledoc Inttegro.Docs.module_doc(__MODULE__, :domain)
   @enforce_keys [:destinations]
@@ -470,7 +501,7 @@ defmodule Inttegro.Payouts.SettingsLookup do
 
   @typedoc Inttegro.Docs.type_doc(__MODULE__, :domain)
   @type t :: %__MODULE__{
-          destinations: %{optional(String.t()) => String.t()},
+          destinations: Inttegro.Payouts.Destinations.t(),
           fx_enabled: boolean() | nil,
           schedule: Inttegro.Payouts.SettingsLookupSchedule.t() | nil
         }
@@ -481,7 +512,7 @@ defmodule Inttegro.Payouts.SettingsLookup do
   @spec from_map(map()) :: t()
   def from_map(map) when is_map(map) do
     %__MODULE__{
-      destinations: Map.new(Map.fetch!(map, "destinations"), fn {key, value} -> {key, value} end),
+      destinations: Inttegro.Payouts.Destinations.from_map(Map.fetch!(map, "destinations")),
       fx_enabled:
         if(is_nil(Map.get(map, "fx_enabled")), do: nil, else: Map.get(map, "fx_enabled")),
       schedule:
@@ -496,10 +527,7 @@ defmodule Inttegro.Payouts.SettingsLookup do
   @spec to_map(t()) :: map()
   def to_map(value) do
     %{
-      "destinations" =>
-        Map.new(value.destinations, fn {key, value} ->
-          {to_string(key), Inttegro.Codec.encode(value)}
-        end),
+      "destinations" => Inttegro.Codec.encode(value.destinations),
       "fx_enabled" =>
         if(is_nil(value.fx_enabled), do: nil, else: Inttegro.Codec.encode(value.fx_enabled)),
       "schedule" =>
@@ -601,11 +629,12 @@ end
 
 defmodule Inttegro.Payouts.SettingsMutation do
   @moduledoc Inttegro.Docs.module_doc(__MODULE__, :domain)
-  defstruct destinations: nil, id: nil, schedule: nil
+  defstruct destinations: nil, fx_enabled: nil, id: nil, schedule: nil
 
   @typedoc Inttegro.Docs.type_doc(__MODULE__, :domain)
   @type t :: %__MODULE__{
-          destinations: %{optional(String.t()) => String.t()} | nil,
+          destinations: Inttegro.Payouts.Destinations.t() | nil,
+          fx_enabled: boolean() | nil,
           id: String.t() | nil,
           schedule: Inttegro.Payouts.SettingsMutationSchedule.t() | nil
         }
@@ -619,8 +648,10 @@ defmodule Inttegro.Payouts.SettingsMutation do
       destinations:
         if(is_nil(Map.get(map, "destinations")),
           do: nil,
-          else: Map.new(Map.get(map, "destinations"), fn {key, value} -> {key, value} end)
+          else: Inttegro.Payouts.Destinations.from_map(Map.get(map, "destinations"))
         ),
+      fx_enabled:
+        if(is_nil(Map.get(map, "fx_enabled")), do: nil, else: Map.get(map, "fx_enabled")),
       id: if(is_nil(Map.get(map, "id")), do: nil, else: Map.get(map, "id")),
       schedule:
         if(is_nil(Map.get(map, "schedule")),
@@ -637,11 +668,10 @@ defmodule Inttegro.Payouts.SettingsMutation do
       "destinations" =>
         if(is_nil(value.destinations),
           do: nil,
-          else:
-            Map.new(value.destinations, fn {key, value} ->
-              {to_string(key), Inttegro.Codec.encode(value)}
-            end)
+          else: Inttegro.Codec.encode(value.destinations)
         ),
+      "fx_enabled" =>
+        if(is_nil(value.fx_enabled), do: nil, else: Inttegro.Codec.encode(value.fx_enabled)),
       "id" => if(is_nil(value.id), do: nil, else: Inttegro.Codec.encode(value.id)),
       "schedule" =>
         if(is_nil(value.schedule), do: nil, else: Inttegro.Codec.encode(value.schedule))
@@ -800,7 +830,7 @@ defmodule Inttegro.Payouts.SetDestinationsRequest do
 
   @typedoc Inttegro.Docs.type_doc(__MODULE__, :request)
   @type t :: %__MODULE__{
-          destinations: %{optional(String.t()) => String.t()}
+          destinations: Inttegro.Payouts.Destinations.t()
         }
   @doc Inttegro.Docs.constructor_doc(__MODULE__)
   @spec new!(map() | keyword()) :: t()
@@ -809,7 +839,7 @@ defmodule Inttegro.Payouts.SetDestinationsRequest do
   @spec from_map(map()) :: t()
   def from_map(map) when is_map(map) do
     %__MODULE__{
-      destinations: Map.new(Map.fetch!(map, "destinations"), fn {key, value} -> {key, value} end)
+      destinations: Inttegro.Payouts.Destinations.from_map(Map.fetch!(map, "destinations"))
     }
   end
 
@@ -817,10 +847,7 @@ defmodule Inttegro.Payouts.SetDestinationsRequest do
   @spec to_map(t()) :: map()
   def to_map(value) do
     %{
-      "destinations" =>
-        Map.new(value.destinations, fn {key, value} ->
-          {to_string(key), Inttegro.Codec.encode(value)}
-        end)
+      "destinations" => Inttegro.Codec.encode(value.destinations)
     }
     |> Enum.reject(fn {_key, item} -> is_nil(item) end)
     |> Map.new()
