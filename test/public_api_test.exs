@@ -188,6 +188,50 @@ defmodule Inttegro.PublicAPITest do
            }
   end
 
+  test "refund settlement is discriminated and contains only masked account details" do
+    refund =
+      Inttegro.Refunds.Refund.from_map(%{
+        "created_at" => "2026-09-09T12:00:00Z",
+        "id" => "rf_123",
+        "line_items" => [],
+        "order_id" => "or_123",
+        "reason" => "requested_by_customer",
+        "settlement" => %{
+          "type" => "payment_method",
+          "payment_method" => %{
+            "id" => "pm_123",
+            "type" => "bank_account",
+            "bank_account" => %{
+              "type" => "ghana_bank_account",
+              "ghana_bank_account" => %{
+                "account_number" => "****1234",
+                "last4" => "1234"
+              }
+            }
+          }
+        },
+        "status" => "pending",
+        "total" => %{"currency" => "ghs", "value" => 100}
+      })
+
+    assert refund.settlement.type == :payment_method
+    assert refund.settlement.payment_method.type == :bank_account
+
+    assert refund.settlement.payment_method.bank_account.ghana_bank_account.account_number ==
+             "****1234"
+
+    assert_raise FunctionClauseError, fn ->
+      Inttegro.Refunds.Settlement.from_map(%{
+        "type" => "offline",
+        "payment_method" => %{"id" => "pm_123"}
+      })
+    end
+
+    assert_raise FunctionClauseError, fn ->
+      Inttegro.Refunds.Settlement.from_map(%{"type" => "payment_method"})
+    end
+  end
+
   test "public reference modules contain meaningful documentation" do
     {:ok, modules} = :application.get_key(:inttegro, :modules)
 
