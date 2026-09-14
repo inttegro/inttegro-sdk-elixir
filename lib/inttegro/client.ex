@@ -333,7 +333,7 @@ defmodule Inttegro.Client do
   The SDK does not configure an exporter or send reports to Inttegro on its own. See the
   Observability guide for the event contract and privacy guarantees.
   """
-  @version "0.3.0"
+  @version "0.4.0"
   @enforce_keys [:api_key, :base_url, :http]
   defstruct [
     :api_key,
