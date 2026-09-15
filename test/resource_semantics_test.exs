@@ -62,6 +62,7 @@ defmodule Inttegro.ResourceSemanticsTest do
         active: true,
         created_at: DateTime.utc_now(),
         customer_id: "cu_123",
+        fingerprint: "ifp_v1_app_customer",
         id: "pm_123",
         type: :mobile_money,
         verified_at: DateTime.utc_now()
@@ -73,5 +74,6 @@ defmodule Inttegro.ResourceSemanticsTest do
     assert Inttegro.Products.ever_published?(product)
     assert Inttegro.PaymentMethods.verified?(method)
     assert Inttegro.PaymentMethods.reusable?(method)
+    assert Inttegro.PaymentMethods.PaymentMethod.to_map(method)["fingerprint"] == "ifp_v1_app_customer"
   end
 end

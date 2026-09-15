@@ -193,7 +193,7 @@ end
 
 defmodule Inttegro.PaymentMethods.PaymentMethod do
   @moduledoc Inttegro.Docs.module_doc(__MODULE__, :domain)
-  @enforce_keys [:active, :created_at, :customer_id, :id, :type]
+  @enforce_keys [:active, :created_at, :customer_id, :fingerprint, :id, :type]
   defstruct active: nil,
             archived_at: nil,
             bank_account: nil,
@@ -203,6 +203,7 @@ defmodule Inttegro.PaymentMethods.PaymentMethod do
             customer_id: nil,
             ephemeral: nil,
             expires_on: nil,
+            fingerprint: nil,
             id: nil,
             mobile_money: nil,
             owner: nil,
@@ -222,6 +223,7 @@ defmodule Inttegro.PaymentMethods.PaymentMethod do
           customer_id: String.t(),
           ephemeral: boolean() | nil,
           expires_on: DateTime.t() | nil,
+          fingerprint: String.t(),
           id: String.t(),
           mobile_money: Inttegro.PaymentMethods.MobileMoney.t() | nil,
           owner: Inttegro.PaymentMethods.Owner.t() | nil,
@@ -266,6 +268,7 @@ defmodule Inttegro.PaymentMethods.PaymentMethod do
           do: nil,
           else: Inttegro.Codec.decode_timestamp(Map.get(map, "expires_on"))
         ),
+      fingerprint: Map.fetch!(map, "fingerprint"),
       id: Map.fetch!(map, "id"),
       mobile_money:
         if(is_nil(Map.get(map, "mobile_money")),
@@ -320,6 +323,7 @@ defmodule Inttegro.PaymentMethods.PaymentMethod do
         if(is_nil(value.ephemeral), do: nil, else: Inttegro.Codec.encode(value.ephemeral)),
       "expires_on" =>
         if(is_nil(value.expires_on), do: nil, else: Inttegro.Codec.encode(value.expires_on)),
+      "fingerprint" => Inttegro.Codec.encode(value.fingerprint),
       "id" => Inttegro.Codec.encode(value.id),
       "mobile_money" =>
         if(is_nil(value.mobile_money), do: nil, else: Inttegro.Codec.encode(value.mobile_money)),
