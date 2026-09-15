@@ -74,6 +74,8 @@ defmodule Inttegro.ResourceSemanticsTest do
     assert Inttegro.Products.ever_published?(product)
     assert Inttegro.PaymentMethods.verified?(method)
     assert Inttegro.PaymentMethods.reusable?(method)
-    assert Inttegro.PaymentMethods.PaymentMethod.to_map(method)["fingerprint"] == "ifp_v1_app_customer"
+
+    assert Inttegro.PaymentMethods.PaymentMethod.to_map(method)["fingerprint"] ==
+             "ifp_v1_app_customer"
   end
 end
