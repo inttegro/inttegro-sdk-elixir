@@ -156,7 +156,7 @@ defmodule Inttegro.UploadRequests.CreateRequest do
           resource: Inttegro.Files.ResourceInput.t() | nil,
           requester: Inttegro.Files.ActorInput.t() | nil,
           attempts: Inttegro.UploadRequests.AttemptsRequest.t() | nil,
-          custom_data: %{optional(String.t()) => String.t()} | nil,
+          custom_data: Inttegro.CustomDataInput.t() | nil,
           expires_at: DateTime.t() | nil,
           purpose: String.t()
         }
@@ -205,7 +205,7 @@ defmodule Inttegro.UploadRequests.CreateRequest do
       custom_data:
         if(is_nil(Map.get(map, "custom_data")),
           do: nil,
-          else: Map.new(Map.get(map, "custom_data"), fn {key, value} -> {key, value} end)
+          else: Inttegro.CustomDataInput.from_map(Map.get(map, "custom_data"))
         ),
       expires_at:
         if(is_nil(Inttegro.Codec.decode_timestamp(Map.get(map, "expires_at"))),
@@ -233,13 +233,7 @@ defmodule Inttegro.UploadRequests.CreateRequest do
       "attempts" =>
         if(is_nil(value.attempts), do: nil, else: Inttegro.Codec.encode(value.attempts)),
       "custom_data" =>
-        if(is_nil(value.custom_data),
-          do: nil,
-          else:
-            Map.new(value.custom_data, fn {key, value} ->
-              {to_string(key), Inttegro.Codec.encode(value)}
-            end)
-        ),
+        if(is_nil(value.custom_data), do: nil, else: Inttegro.Codec.encode(value.custom_data)),
       "expires_at" =>
         if(is_nil(value.expires_at), do: nil, else: Inttegro.Codec.encode(value.expires_at)),
       "purpose" => Inttegro.Codec.encode(value.purpose)
@@ -552,7 +546,7 @@ defmodule Inttegro.UploadRequests.UploadRequest do
           attempts: Inttegro.UploadRequests.Attempts.t(),
           latest_error: Inttegro.UploadRequests.LatestError.t() | nil,
           canceled_by: Inttegro.UploadRequests.Actor.t() | nil,
-          custom_data: %{optional(String.t()) => String.t()} | nil,
+          custom_data: Inttegro.CustomData.t() | nil,
           metadata: %{optional(String.t()) => String.t()} | nil,
           created_at: DateTime.t(),
           updated_at: DateTime.t(),
@@ -597,7 +591,7 @@ defmodule Inttegro.UploadRequests.UploadRequest do
       custom_data:
         if(is_nil(Map.get(map, "custom_data")),
           do: nil,
-          else: Map.new(Map.get(map, "custom_data"), fn {key, value} -> {key, value} end)
+          else: Inttegro.CustomData.from_map(Map.get(map, "custom_data"))
         ),
       metadata:
         if(is_nil(Map.get(map, "metadata")),
@@ -658,13 +652,7 @@ defmodule Inttegro.UploadRequests.UploadRequest do
       "canceled_by" =>
         if(is_nil(value.canceled_by), do: nil, else: Inttegro.Codec.encode(value.canceled_by)),
       "custom_data" =>
-        if(is_nil(value.custom_data),
-          do: nil,
-          else:
-            Map.new(value.custom_data, fn {key, value} ->
-              {to_string(key), Inttegro.Codec.encode(value)}
-            end)
-        ),
+        if(is_nil(value.custom_data), do: nil, else: Inttegro.Codec.encode(value.custom_data)),
       "metadata" =>
         if(is_nil(value.metadata),
           do: nil,

@@ -79,7 +79,7 @@ defmodule Inttegro.FinancialAccounts.FinancialAccount do
           archived_at: DateTime.t() | nil,
           created_at: DateTime.t(),
           currency: String.t(),
-          custom_data: %{optional(String.t()) => String.t()} | nil,
+          custom_data: Inttegro.CustomData.t() | nil,
           description: String.t() | nil,
           id: String.t(),
           institution: Inttegro.FinancialAccounts.FinancialInstitution.t() | nil,
@@ -113,7 +113,7 @@ defmodule Inttegro.FinancialAccounts.FinancialAccount do
       custom_data:
         if(is_nil(Map.get(map, "custom_data")),
           do: nil,
-          else: Map.new(Map.get(map, "custom_data"), fn {key, value} -> {key, value} end)
+          else: Inttegro.CustomData.from_map(Map.get(map, "custom_data"))
         ),
       description:
         if(is_nil(Map.get(map, "description")), do: nil, else: Map.get(map, "description")),
@@ -190,13 +190,7 @@ defmodule Inttegro.FinancialAccounts.FinancialAccount do
       "created_at" => Inttegro.Codec.encode(value.created_at),
       "currency" => Inttegro.Codec.encode(value.currency),
       "custom_data" =>
-        if(is_nil(value.custom_data),
-          do: nil,
-          else:
-            Map.new(value.custom_data, fn {key, value} ->
-              {to_string(key), Inttegro.Codec.encode(value)}
-            end)
-        ),
+        if(is_nil(value.custom_data), do: nil, else: Inttegro.Codec.encode(value.custom_data)),
       "description" =>
         if(is_nil(value.description), do: nil, else: Inttegro.Codec.encode(value.description)),
       "id" => Inttegro.Codec.encode(value.id),
@@ -367,7 +361,7 @@ defmodule Inttegro.FinancialAccounts.BankRequest do
 
   @typedoc Inttegro.Docs.type_doc(__MODULE__, :request)
   @type t :: %__MODULE__{
-          custom_data: %{optional(String.t()) => term()} | nil,
+          custom_data: Inttegro.CustomDataInput.t() | nil,
           description: String.t() | nil,
           owner: Inttegro.FinancialAccounts.OwnerInput.t() | nil,
           pull_configuration: Inttegro.FinancialAccounts.BankRequestPullConfiguration.t() | nil,
@@ -388,7 +382,7 @@ defmodule Inttegro.FinancialAccounts.BankRequest do
       custom_data:
         if(is_nil(Map.get(map, "custom_data")),
           do: nil,
-          else: Map.new(Map.get(map, "custom_data"), fn {key, value} -> {key, value} end)
+          else: Inttegro.CustomDataInput.from_map(Map.get(map, "custom_data"))
         ),
       description:
         if(is_nil(Map.get(map, "description")), do: nil, else: Map.get(map, "description")),
@@ -429,13 +423,7 @@ defmodule Inttegro.FinancialAccounts.BankRequest do
   def to_map(value) do
     %{
       "custom_data" =>
-        if(is_nil(value.custom_data),
-          do: nil,
-          else:
-            Map.new(value.custom_data, fn {key, value} ->
-              {to_string(key), Inttegro.Codec.encode(value)}
-            end)
-        ),
+        if(is_nil(value.custom_data), do: nil, else: Inttegro.Codec.encode(value.custom_data)),
       "description" =>
         if(is_nil(value.description), do: nil, else: Inttegro.Codec.encode(value.description)),
       "owner" => if(is_nil(value.owner), do: nil, else: Inttegro.Codec.encode(value.owner)),
@@ -670,7 +658,7 @@ defmodule Inttegro.FinancialAccounts.DoshRequest do
 
   @typedoc Inttegro.Docs.type_doc(__MODULE__, :request)
   @type t :: %__MODULE__{
-          custom_data: %{optional(String.t()) => term()} | nil,
+          custom_data: Inttegro.CustomDataInput.t() | nil,
           description: String.t() | nil,
           pull_configuration: Inttegro.FinancialAccounts.DoshRequestPullConfiguration.t() | nil,
           push_configuration: Inttegro.FinancialAccounts.DoshRequestPushConfiguration.t() | nil,
@@ -691,7 +679,7 @@ defmodule Inttegro.FinancialAccounts.DoshRequest do
       custom_data:
         if(is_nil(Map.get(map, "custom_data")),
           do: nil,
-          else: Map.new(Map.get(map, "custom_data"), fn {key, value} -> {key, value} end)
+          else: Inttegro.CustomDataInput.from_map(Map.get(map, "custom_data"))
         ),
       description:
         if(is_nil(Map.get(map, "description")), do: nil, else: Map.get(map, "description")),
@@ -725,13 +713,7 @@ defmodule Inttegro.FinancialAccounts.DoshRequest do
   def to_map(value) do
     %{
       "custom_data" =>
-        if(is_nil(value.custom_data),
-          do: nil,
-          else:
-            Map.new(value.custom_data, fn {key, value} ->
-              {to_string(key), Inttegro.Codec.encode(value)}
-            end)
-        ),
+        if(is_nil(value.custom_data), do: nil, else: Inttegro.Codec.encode(value.custom_data)),
       "description" =>
         if(is_nil(value.description), do: nil, else: Inttegro.Codec.encode(value.description)),
       "pull_configuration" =>
@@ -1309,7 +1291,7 @@ defmodule Inttegro.FinancialAccounts.UpdateRequest do
 
   @typedoc Inttegro.Docs.type_doc(__MODULE__, :request)
   @type t :: %__MODULE__{
-          custom_data: %{optional(String.t()) => term()} | nil,
+          custom_data: Inttegro.CustomDataInput.t() | nil,
           description: String.t() | nil,
           label: String.t() | nil,
           owner: Inttegro.FinancialAccounts.OwnerUpdateInput.t() | nil,
@@ -1326,7 +1308,7 @@ defmodule Inttegro.FinancialAccounts.UpdateRequest do
       custom_data:
         if(is_nil(Map.get(map, "custom_data")),
           do: nil,
-          else: Map.new(Map.get(map, "custom_data"), fn {key, value} -> {key, value} end)
+          else: Inttegro.CustomDataInput.from_map(Map.get(map, "custom_data"))
         ),
       description:
         if(is_nil(Map.get(map, "description")), do: nil, else: Map.get(map, "description")),
@@ -1346,13 +1328,7 @@ defmodule Inttegro.FinancialAccounts.UpdateRequest do
   def to_map(value) do
     %{
       "custom_data" =>
-        if(is_nil(value.custom_data),
-          do: nil,
-          else:
-            Map.new(value.custom_data, fn {key, value} ->
-              {to_string(key), Inttegro.Codec.encode(value)}
-            end)
-        ),
+        if(is_nil(value.custom_data), do: nil, else: Inttegro.Codec.encode(value.custom_data)),
       "description" =>
         if(is_nil(value.description), do: nil, else: Inttegro.Codec.encode(value.description)),
       "label" => if(is_nil(value.label), do: nil, else: Inttegro.Codec.encode(value.label)),
@@ -1459,7 +1435,7 @@ defmodule Inttegro.FinancialAccounts.WalletRequest do
 
   @typedoc Inttegro.Docs.type_doc(__MODULE__, :request)
   @type t :: %__MODULE__{
-          custom_data: %{optional(String.t()) => term()} | nil,
+          custom_data: Inttegro.CustomDataInput.t() | nil,
           description: String.t() | nil,
           pull_configuration: Inttegro.FinancialAccounts.WalletRequestPullConfiguration.t() | nil,
           push_configuration: Inttegro.FinancialAccounts.WalletRequestPushConfiguration.t() | nil,
@@ -1480,7 +1456,7 @@ defmodule Inttegro.FinancialAccounts.WalletRequest do
       custom_data:
         if(is_nil(Map.get(map, "custom_data")),
           do: nil,
-          else: Map.new(Map.get(map, "custom_data"), fn {key, value} -> {key, value} end)
+          else: Inttegro.CustomDataInput.from_map(Map.get(map, "custom_data"))
         ),
       description:
         if(is_nil(Map.get(map, "description")), do: nil, else: Map.get(map, "description")),
@@ -1514,13 +1490,7 @@ defmodule Inttegro.FinancialAccounts.WalletRequest do
   def to_map(value) do
     %{
       "custom_data" =>
-        if(is_nil(value.custom_data),
-          do: nil,
-          else:
-            Map.new(value.custom_data, fn {key, value} ->
-              {to_string(key), Inttegro.Codec.encode(value)}
-            end)
-        ),
+        if(is_nil(value.custom_data), do: nil, else: Inttegro.Codec.encode(value.custom_data)),
       "description" =>
         if(is_nil(value.description), do: nil, else: Inttegro.Codec.encode(value.description)),
       "pull_configuration" =>

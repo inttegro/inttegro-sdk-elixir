@@ -2,6 +2,7 @@
 # frozen_string_literal: true
 
 require "fileutils"
+require_relative "semantic_custom_data"
 
 # Splits generated monoliths after namespace and documentation enrichment. The
 # generator can continue to emit deterministic aggregate files; public source
@@ -49,7 +50,8 @@ generated_groups.each do |group, blocks|
            File.join(LIB, group, "types.ex")
          end
   FileUtils.mkdir_p(File.dirname(path))
-  File.write(path, "# Generated Inttegro types for this domain. Do not edit manually.\n\n" + blocks.map(&:last).join("\n"))
+  source = blocks.map { |_name, block| SemanticCustomData.transform_block(block) }.join("\n")
+  File.write(path, "# Generated Inttegro types for this domain. Do not edit manually.\n\n" + source)
 end
 
 resources = File.read(RESOURCES_PATH)

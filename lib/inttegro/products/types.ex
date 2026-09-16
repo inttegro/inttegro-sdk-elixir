@@ -246,7 +246,7 @@ defmodule Inttegro.Products.CreateRequest do
           media: Inttegro.Products.MediaInput.t() | nil,
           attributes: [Inttegro.Products.AttributeInput.t()] | nil,
           publish: boolean() | nil,
-          custom_data: %{optional(String.t()) => String.t()} | nil,
+          custom_data: Inttegro.CustomDataInput.t() | nil,
           type: Inttegro.Products.Type.t(),
           name: String.t()
         }
@@ -292,7 +292,7 @@ defmodule Inttegro.Products.CreateRequest do
       custom_data:
         if(is_nil(Map.get(map, "custom_data")),
           do: nil,
-          else: Map.new(Map.get(map, "custom_data"), fn {key, value} -> {key, value} end)
+          else: Inttegro.CustomDataInput.from_map(Map.get(map, "custom_data"))
         ),
       type: Inttegro.Products.Type.decode(Map.fetch!(map, "type")),
       name: Map.fetch!(map, "name")
@@ -329,13 +329,7 @@ defmodule Inttegro.Products.CreateRequest do
         ),
       "publish" => if(is_nil(value.publish), do: nil, else: Inttegro.Codec.encode(value.publish)),
       "custom_data" =>
-        if(is_nil(value.custom_data),
-          do: nil,
-          else:
-            Map.new(value.custom_data, fn {key, value} ->
-              {to_string(key), Inttegro.Codec.encode(value)}
-            end)
-        ),
+        if(is_nil(value.custom_data), do: nil, else: Inttegro.Codec.encode(value.custom_data)),
       "type" => Inttegro.Products.Type.encode(value.type),
       "name" => Inttegro.Codec.encode(value.name)
     }
@@ -359,7 +353,7 @@ defmodule Inttegro.Products.InlineDetailsInput do
   @typedoc Inttegro.Docs.type_doc(__MODULE__, :request)
   @type t :: %__MODULE__{
           about: String.t() | nil,
-          custom_data: %{optional(String.t()) => term()} | nil,
+          custom_data: Inttegro.CustomDataInput.t() | nil,
           reference: String.t() | nil,
           tax_code: String.t() | nil,
           name: String.t(),
@@ -378,7 +372,7 @@ defmodule Inttegro.Products.InlineDetailsInput do
       custom_data:
         if(is_nil(Map.get(map, "custom_data")),
           do: nil,
-          else: Map.new(Map.get(map, "custom_data"), fn {key, value} -> {key, value} end)
+          else: Inttegro.CustomDataInput.from_map(Map.get(map, "custom_data"))
         ),
       reference: if(is_nil(Map.get(map, "reference")), do: nil, else: Map.get(map, "reference")),
       tax_code: if(is_nil(Map.get(map, "tax_code")), do: nil, else: Map.get(map, "tax_code")),
@@ -395,13 +389,7 @@ defmodule Inttegro.Products.InlineDetailsInput do
     %{
       "about" => if(is_nil(value.about), do: nil, else: Inttegro.Codec.encode(value.about)),
       "custom_data" =>
-        if(is_nil(value.custom_data),
-          do: nil,
-          else:
-            Map.new(value.custom_data, fn {key, value} ->
-              {to_string(key), Inttegro.Codec.encode(value)}
-            end)
-        ),
+        if(is_nil(value.custom_data), do: nil, else: Inttegro.Codec.encode(value.custom_data)),
       "reference" =>
         if(is_nil(value.reference), do: nil, else: Inttegro.Codec.encode(value.reference)),
       "tax_code" =>
@@ -521,7 +509,7 @@ defmodule Inttegro.Products.Product do
           media: Inttegro.Products.Media.t() | nil,
           attributes: [Inttegro.Products.Attribute.t()] | nil,
           dimensions: Inttegro.Products.Dimensions.t() | nil,
-          custom_data: %{optional(String.t()) => String.t()} | nil,
+          custom_data: Inttegro.CustomData.t() | nil,
           active: boolean(),
           created_at: DateTime.t(),
           updated_at: DateTime.t() | nil,
@@ -579,7 +567,7 @@ defmodule Inttegro.Products.Product do
       custom_data:
         if(is_nil(Map.get(map, "custom_data")),
           do: nil,
-          else: Map.new(Map.get(map, "custom_data"), fn {key, value} -> {key, value} end)
+          else: Inttegro.CustomData.from_map(Map.get(map, "custom_data"))
         ),
       active: Map.fetch!(map, "active"),
       created_at: Inttegro.Codec.decode_timestamp(Map.fetch!(map, "created_at")),
@@ -634,13 +622,7 @@ defmodule Inttegro.Products.Product do
       "dimensions" =>
         if(is_nil(value.dimensions), do: nil, else: Inttegro.Codec.encode(value.dimensions)),
       "custom_data" =>
-        if(is_nil(value.custom_data),
-          do: nil,
-          else:
-            Map.new(value.custom_data, fn {key, value} ->
-              {to_string(key), Inttegro.Codec.encode(value)}
-            end)
-        ),
+        if(is_nil(value.custom_data), do: nil, else: Inttegro.Codec.encode(value.custom_data)),
       "active" => Inttegro.Codec.encode(value.active),
       "created_at" => Inttegro.Codec.encode(value.created_at),
       "updated_at" =>
@@ -1619,7 +1601,7 @@ defmodule Inttegro.Products.UpdateRequest do
           media: Inttegro.Products.MediaInput.t() | nil,
           images: [String.t()] | nil,
           attributes: [Inttegro.Products.AttributeInput.t()] | nil,
-          custom_data: %{optional(String.t()) => String.t()} | nil,
+          custom_data: Inttegro.CustomDataInput.t() | nil,
           product_id: String.t()
         }
   @doc Inttegro.Docs.constructor_doc(__MODULE__)
@@ -1673,7 +1655,7 @@ defmodule Inttegro.Products.UpdateRequest do
       custom_data:
         if(is_nil(Map.get(map, "custom_data")),
           do: nil,
-          else: Map.new(Map.get(map, "custom_data"), fn {key, value} -> {key, value} end)
+          else: Inttegro.CustomDataInput.from_map(Map.get(map, "custom_data"))
         ),
       product_id: Map.fetch!(map, "product_id")
     }
@@ -1713,13 +1695,7 @@ defmodule Inttegro.Products.UpdateRequest do
           else: Enum.map(value.attributes, fn item -> Inttegro.Codec.encode(item) end)
         ),
       "custom_data" =>
-        if(is_nil(value.custom_data),
-          do: nil,
-          else:
-            Map.new(value.custom_data, fn {key, value} ->
-              {to_string(key), Inttegro.Codec.encode(value)}
-            end)
-        ),
+        if(is_nil(value.custom_data), do: nil, else: Inttegro.Codec.encode(value.custom_data)),
       "product_id" => Inttegro.Codec.encode(value.product_id)
     }
     |> Enum.reject(fn {_key, item} -> is_nil(item) end)
@@ -1755,7 +1731,7 @@ defmodule Inttegro.Products.Updated do
           reference: String.t() | nil,
           tax_code: String.t() | nil,
           category: String.t() | nil,
-          custom_data: %{optional(String.t()) => String.t()} | nil,
+          custom_data: Inttegro.CustomData.t() | nil,
           dimensions: Inttegro.Products.Dimensions.t() | nil,
           prices: [Inttegro.Products.PriceSummary.t()] | nil,
           unit_dim: String.t() | nil,
@@ -1781,7 +1757,7 @@ defmodule Inttegro.Products.Updated do
       custom_data:
         if(is_nil(Map.get(map, "custom_data")),
           do: nil,
-          else: Map.new(Map.get(map, "custom_data"), fn {key, value} -> {key, value} end)
+          else: Inttegro.CustomData.from_map(Map.get(map, "custom_data"))
         ),
       dimensions:
         if(is_nil(Map.get(map, "dimensions")),
@@ -1823,13 +1799,7 @@ defmodule Inttegro.Products.Updated do
       "category" =>
         if(is_nil(value.category), do: nil, else: Inttegro.Codec.encode(value.category)),
       "custom_data" =>
-        if(is_nil(value.custom_data),
-          do: nil,
-          else:
-            Map.new(value.custom_data, fn {key, value} ->
-              {to_string(key), Inttegro.Codec.encode(value)}
-            end)
-        ),
+        if(is_nil(value.custom_data), do: nil, else: Inttegro.Codec.encode(value.custom_data)),
       "dimensions" =>
         if(is_nil(value.dimensions), do: nil, else: Inttegro.Codec.encode(value.dimensions)),
       "prices" =>

@@ -218,7 +218,7 @@ defmodule Inttegro.Files.File do
           storage: Inttegro.Files.PublicStorage.t(),
           delivery: Inttegro.Files.DeliveryDetails.t() | nil,
           latest_error: Inttegro.Files.LatestError.t() | nil,
-          custom_data: %{optional(String.t()) => String.t()} | nil,
+          custom_data: Inttegro.CustomData.t() | nil,
           metadata: %{optional(String.t()) => String.t()} | nil,
           created_at: DateTime.t(),
           updated_at: DateTime.t(),
@@ -262,7 +262,7 @@ defmodule Inttegro.Files.File do
       custom_data:
         if(is_nil(Map.get(map, "custom_data")),
           do: nil,
-          else: Map.new(Map.get(map, "custom_data"), fn {key, value} -> {key, value} end)
+          else: Inttegro.CustomData.from_map(Map.get(map, "custom_data"))
         ),
       metadata:
         if(is_nil(Map.get(map, "metadata")),
@@ -307,13 +307,7 @@ defmodule Inttegro.Files.File do
       "latest_error" =>
         if(is_nil(value.latest_error), do: nil, else: Inttegro.Codec.encode(value.latest_error)),
       "custom_data" =>
-        if(is_nil(value.custom_data),
-          do: nil,
-          else:
-            Map.new(value.custom_data, fn {key, value} ->
-              {to_string(key), Inttegro.Codec.encode(value)}
-            end)
-        ),
+        if(is_nil(value.custom_data), do: nil, else: Inttegro.Codec.encode(value.custom_data)),
       "metadata" =>
         if(is_nil(value.metadata),
           do: nil,

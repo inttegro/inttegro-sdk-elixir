@@ -238,7 +238,7 @@ defmodule Inttegro.PublicAPITest do
     modules =
       Enum.filter(modules, fn module ->
         String.starts_with?(inspect(module), "Inttegro.") and
-          module not in [Inttegro.Codec, Inttegro.Docs]
+          module not in [Inttegro.Codec, Inttegro.CustomData.Validation, Inttegro.Docs]
       end)
 
     Enum.each(modules, fn module ->
@@ -271,6 +271,9 @@ defmodule Inttegro.PublicAPITest do
       Inttegro.Checkout,
       Inttegro.Chimes,
       Inttegro.Client,
+      Inttegro.CustomData,
+      Inttegro.CustomDataInput,
+      Inttegro.CustomDataPatch,
       Inttegro.Customers,
       Inttegro.Errors,
       Inttegro.FileLinks,

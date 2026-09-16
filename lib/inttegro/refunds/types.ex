@@ -185,7 +185,7 @@ defmodule Inttegro.Refunds.CreateRequest do
 
   @typedoc Inttegro.Docs.type_doc(__MODULE__, :request)
   @type t :: %__MODULE__{
-          custom_data: %{optional(String.t()) => String.t()} | nil,
+          custom_data: Inttegro.CustomDataInput.t() | nil,
           reason_details: String.t() | nil,
           reference: String.t() | nil,
           request_meta: Inttegro.Refunds.RequestMetaInput.t() | nil,
@@ -203,7 +203,7 @@ defmodule Inttegro.Refunds.CreateRequest do
       custom_data:
         if(is_nil(Map.get(map, "custom_data")),
           do: nil,
-          else: Map.new(Map.get(map, "custom_data"), fn {key, value} -> {key, value} end)
+          else: Inttegro.CustomDataInput.from_map(Map.get(map, "custom_data"))
         ),
       reason_details:
         if(is_nil(Map.get(map, "reason_details")), do: nil, else: Map.get(map, "reason_details")),
@@ -227,13 +227,7 @@ defmodule Inttegro.Refunds.CreateRequest do
   def to_map(value) do
     %{
       "custom_data" =>
-        if(is_nil(value.custom_data),
-          do: nil,
-          else:
-            Map.new(value.custom_data, fn {key, value} ->
-              {to_string(key), Inttegro.Codec.encode(value)}
-            end)
-        ),
+        if(is_nil(value.custom_data), do: nil, else: Inttegro.Codec.encode(value.custom_data)),
       "reason_details" =>
         if(is_nil(value.reason_details),
           do: nil,
@@ -589,7 +583,7 @@ defmodule Inttegro.Refunds.Refund do
   @type t :: %__MODULE__{
           canceled_at: DateTime.t() | nil,
           created_at: DateTime.t(),
-          custom_data: %{optional(String.t()) => String.t()} | nil,
+          custom_data: Inttegro.CustomData.t() | nil,
           failed_at: DateTime.t() | nil,
           id: String.t(),
           line_items: [Inttegro.Refunds.LineItem.t()],
@@ -619,7 +613,7 @@ defmodule Inttegro.Refunds.Refund do
       custom_data:
         if(is_nil(Map.get(map, "custom_data")),
           do: nil,
-          else: Map.new(Map.get(map, "custom_data"), fn {key, value} -> {key, value} end)
+          else: Inttegro.CustomData.from_map(Map.get(map, "custom_data"))
         ),
       failed_at:
         if(is_nil(Inttegro.Codec.decode_timestamp(Map.get(map, "failed_at"))),
@@ -660,13 +654,7 @@ defmodule Inttegro.Refunds.Refund do
         if(is_nil(value.canceled_at), do: nil, else: Inttegro.Codec.encode(value.canceled_at)),
       "created_at" => Inttegro.Codec.encode(value.created_at),
       "custom_data" =>
-        if(is_nil(value.custom_data),
-          do: nil,
-          else:
-            Map.new(value.custom_data, fn {key, value} ->
-              {to_string(key), Inttegro.Codec.encode(value)}
-            end)
-        ),
+        if(is_nil(value.custom_data), do: nil, else: Inttegro.Codec.encode(value.custom_data)),
       "failed_at" =>
         if(is_nil(value.failed_at), do: nil, else: Inttegro.Codec.encode(value.failed_at)),
       "id" => Inttegro.Codec.encode(value.id),

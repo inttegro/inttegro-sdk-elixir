@@ -730,7 +730,7 @@ defmodule Inttegro.PurchaseIntents.Product do
           attributes: [Inttegro.PurchaseIntents.ProductAttributesItem.t()] | nil,
           category: String.t() | nil,
           created_at: DateTime.t(),
-          custom_data: %{optional(String.t()) => String.t()} | nil,
+          custom_data: Inttegro.CustomData.t() | nil,
           description: String.t() | nil,
           dimensions: Inttegro.Products.Dimensions.t() | nil,
           media: Inttegro.Products.Media.t() | nil,
@@ -773,7 +773,7 @@ defmodule Inttegro.PurchaseIntents.Product do
       custom_data:
         if(is_nil(Map.get(map, "custom_data")),
           do: nil,
-          else: Map.new(Map.get(map, "custom_data"), fn {key, value} -> {key, value} end)
+          else: Inttegro.CustomData.from_map(Map.get(map, "custom_data"))
         ),
       description:
         if(is_nil(Map.get(map, "description")), do: nil, else: Map.get(map, "description")),
@@ -838,13 +838,7 @@ defmodule Inttegro.PurchaseIntents.Product do
         if(is_nil(value.category), do: nil, else: Inttegro.Codec.encode(value.category)),
       "created_at" => Inttegro.Codec.encode(value.created_at),
       "custom_data" =>
-        if(is_nil(value.custom_data),
-          do: nil,
-          else:
-            Map.new(value.custom_data, fn {key, value} ->
-              {to_string(key), Inttegro.Codec.encode(value)}
-            end)
-        ),
+        if(is_nil(value.custom_data), do: nil, else: Inttegro.Codec.encode(value.custom_data)),
       "description" =>
         if(is_nil(value.description), do: nil, else: Inttegro.Codec.encode(value.description)),
       "dimensions" =>

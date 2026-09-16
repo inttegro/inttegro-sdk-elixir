@@ -1,5 +1,14 @@
 # Changelog
 
+## 0.5.0
+
+- Breaking: replaced raw custom-data maps with immutable `Inttegro.CustomData`,
+  `Inttegro.CustomDataInput`, and `Inttegro.CustomDataPatch` values.
+- Preserved open-ended JSON inputs while making replacement and merge behavior
+  explicit and validating custom-data size and key limits.
+- Made the semantic custom-data transformation part of code generation so
+  regenerated SDK types keep the public contract.
+
 ## 0.4.0
 
 - Breaking: replaced payout maps and generic payloads with named request,

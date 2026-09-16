@@ -459,7 +459,7 @@ defmodule Inttegro.Orders.CreateExistingCustomerInput do
             Inttegro.Orders.CreateExistingCustomerInputCheckoutSettings.t() | nil,
           invoice_settings: Inttegro.Invoices.SettingsInput.t() | nil,
           payout_settings: Inttegro.Orders.PayoutSettingsRequest.t() | nil,
-          custom_data: %{optional(String.t()) => String.t()} | nil,
+          custom_data: Inttegro.CustomDataInput.t() | nil,
           billing_details: Inttegro.Orders.BillingDetailsInput.t() | nil,
           shipping: Inttegro.Orders.ShippingInput.t() | nil,
           customer_id: String.t(),
@@ -529,7 +529,7 @@ defmodule Inttegro.Orders.CreateExistingCustomerInput do
       custom_data:
         if(is_nil(Map.get(map, "custom_data")),
           do: nil,
-          else: Map.new(Map.get(map, "custom_data"), fn {key, value} -> {key, value} end)
+          else: Inttegro.CustomDataInput.from_map(Map.get(map, "custom_data"))
         ),
       billing_details:
         if(is_nil(Map.get(map, "billing_details")),
@@ -603,13 +603,7 @@ defmodule Inttegro.Orders.CreateExistingCustomerInput do
           else: Inttegro.Codec.encode(value.payout_settings)
         ),
       "custom_data" =>
-        if(is_nil(value.custom_data),
-          do: nil,
-          else:
-            Map.new(value.custom_data, fn {key, value} ->
-              {to_string(key), Inttegro.Codec.encode(value)}
-            end)
-        ),
+        if(is_nil(value.custom_data), do: nil, else: Inttegro.Codec.encode(value.custom_data)),
       "billing_details" =>
         if(is_nil(value.billing_details),
           do: nil,
@@ -732,7 +726,7 @@ defmodule Inttegro.Orders.CreateNewCustomerInput do
           checkout_settings: Inttegro.Orders.CreateNewCustomerInputCheckoutSettings.t() | nil,
           invoice_settings: Inttegro.Invoices.SettingsInput.t() | nil,
           payout_settings: Inttegro.Orders.PayoutSettingsRequest.t() | nil,
-          custom_data: %{optional(String.t()) => String.t()} | nil,
+          custom_data: Inttegro.CustomDataInput.t() | nil,
           billing_details: Inttegro.Orders.BillingDetailsInput.t() | nil,
           shipping: Inttegro.Orders.ShippingInput.t() | nil,
           payment_method_data: Inttegro.PaymentMethods.DataInput.t() | nil,
@@ -794,7 +788,7 @@ defmodule Inttegro.Orders.CreateNewCustomerInput do
       custom_data:
         if(is_nil(Map.get(map, "custom_data")),
           do: nil,
-          else: Map.new(Map.get(map, "custom_data"), fn {key, value} -> {key, value} end)
+          else: Inttegro.CustomDataInput.from_map(Map.get(map, "custom_data"))
         ),
       billing_details:
         if(is_nil(Map.get(map, "billing_details")),
@@ -864,13 +858,7 @@ defmodule Inttegro.Orders.CreateNewCustomerInput do
           else: Inttegro.Codec.encode(value.payout_settings)
         ),
       "custom_data" =>
-        if(is_nil(value.custom_data),
-          do: nil,
-          else:
-            Map.new(value.custom_data, fn {key, value} ->
-              {to_string(key), Inttegro.Codec.encode(value)}
-            end)
-        ),
+        if(is_nil(value.custom_data), do: nil, else: Inttegro.Codec.encode(value.custom_data)),
       "billing_details" =>
         if(is_nil(value.billing_details),
           do: nil,
@@ -977,7 +965,7 @@ defmodule Inttegro.Orders.FeeDetailsInput do
           label: String.t() | nil,
           tax_code: String.t() | nil,
           description: String.t() | nil,
-          custom_data: %{optional(String.t()) => term()} | nil,
+          custom_data: Inttegro.CustomDataInput.t() | nil,
           amount: Inttegro.Money.AmountParams.t()
         }
   @doc Inttegro.Docs.constructor_doc(__MODULE__)
@@ -995,7 +983,7 @@ defmodule Inttegro.Orders.FeeDetailsInput do
       custom_data:
         if(is_nil(Map.get(map, "custom_data")),
           do: nil,
-          else: Map.new(Map.get(map, "custom_data"), fn {key, value} -> {key, value} end)
+          else: Inttegro.CustomDataInput.from_map(Map.get(map, "custom_data"))
         ),
       amount: Inttegro.Money.AmountParams.from_map(Map.fetch!(map, "amount"))
     }
@@ -1012,13 +1000,7 @@ defmodule Inttegro.Orders.FeeDetailsInput do
       "description" =>
         if(is_nil(value.description), do: nil, else: Inttegro.Codec.encode(value.description)),
       "custom_data" =>
-        if(is_nil(value.custom_data),
-          do: nil,
-          else:
-            Map.new(value.custom_data, fn {key, value} ->
-              {to_string(key), Inttegro.Codec.encode(value)}
-            end)
-        ),
+        if(is_nil(value.custom_data), do: nil, else: Inttegro.Codec.encode(value.custom_data)),
       "amount" => Inttegro.Codec.encode(value.amount)
     }
     |> Enum.reject(fn {_key, item} -> is_nil(item) end)
@@ -1153,7 +1135,7 @@ defmodule Inttegro.Orders.Order do
           checkout_settings: Inttegro.Orders.CheckoutSettings.t() | nil,
           completed_at: DateTime.t() | nil,
           created_from: Inttegro.Orders.CreatedFrom.t() | nil,
-          custom_data: %{optional(String.t()) => String.t()} | nil,
+          custom_data: Inttegro.CustomData.t() | nil,
           customer: Inttegro.Orders.Customer.t(),
           expires_at: DateTime.t() | nil,
           id: String.t(),
@@ -1201,7 +1183,7 @@ defmodule Inttegro.Orders.Order do
       custom_data:
         if(is_nil(Map.get(map, "custom_data")),
           do: nil,
-          else: Map.new(Map.get(map, "custom_data"), fn {key, value} -> {key, value} end)
+          else: Inttegro.CustomData.from_map(Map.get(map, "custom_data"))
         ),
       customer: Inttegro.Orders.Customer.from_map(Map.fetch!(map, "customer")),
       expires_at:
@@ -1278,13 +1260,7 @@ defmodule Inttegro.Orders.Order do
       "created_from" =>
         if(is_nil(value.created_from), do: nil, else: Inttegro.Codec.encode(value.created_from)),
       "custom_data" =>
-        if(is_nil(value.custom_data),
-          do: nil,
-          else:
-            Map.new(value.custom_data, fn {key, value} ->
-              {to_string(key), Inttegro.Codec.encode(value)}
-            end)
-        ),
+        if(is_nil(value.custom_data), do: nil, else: Inttegro.Codec.encode(value.custom_data)),
       "customer" => Inttegro.Codec.encode(value.customer),
       "expires_at" =>
         if(is_nil(value.expires_at), do: nil, else: Inttegro.Codec.encode(value.expires_at)),
@@ -1945,7 +1921,7 @@ defmodule Inttegro.Orders.ProductLineItemProduct do
           price_id: String.t() | nil,
           reference: String.t() | nil,
           about: String.t() | nil,
-          custom_data: %{optional(String.t()) => String.t()} | nil,
+          custom_data: Inttegro.CustomData.t() | nil,
           tax_code: String.t() | nil,
           name: String.t(),
           category: String.t() | nil,
@@ -1969,7 +1945,7 @@ defmodule Inttegro.Orders.ProductLineItemProduct do
       custom_data:
         if(is_nil(Map.get(map, "custom_data")),
           do: nil,
-          else: Map.new(Map.get(map, "custom_data"), fn {key, value} -> {key, value} end)
+          else: Inttegro.CustomData.from_map(Map.get(map, "custom_data"))
         ),
       tax_code: if(is_nil(Map.get(map, "tax_code")), do: nil, else: Map.get(map, "tax_code")),
       name: Map.fetch!(map, "name"),
@@ -1993,13 +1969,7 @@ defmodule Inttegro.Orders.ProductLineItemProduct do
         if(is_nil(value.reference), do: nil, else: Inttegro.Codec.encode(value.reference)),
       "about" => if(is_nil(value.about), do: nil, else: Inttegro.Codec.encode(value.about)),
       "custom_data" =>
-        if(is_nil(value.custom_data),
-          do: nil,
-          else:
-            Map.new(value.custom_data, fn {key, value} ->
-              {to_string(key), Inttegro.Codec.encode(value)}
-            end)
-        ),
+        if(is_nil(value.custom_data), do: nil, else: Inttegro.Codec.encode(value.custom_data)),
       "tax_code" =>
         if(is_nil(value.tax_code), do: nil, else: Inttegro.Codec.encode(value.tax_code)),
       "name" => Inttegro.Codec.encode(value.name),
@@ -2268,7 +2238,7 @@ defmodule Inttegro.Orders.ShippingDetailsInput do
   @type t :: %__MODULE__{
           id: String.t() | nil,
           tax_code: String.t() | nil,
-          custom_data: %{optional(String.t()) => term()} | nil,
+          custom_data: Inttegro.CustomDataInput.t() | nil,
           fee: Inttegro.Money.AmountParams.t()
         }
   @doc Inttegro.Docs.constructor_doc(__MODULE__)
@@ -2283,7 +2253,7 @@ defmodule Inttegro.Orders.ShippingDetailsInput do
       custom_data:
         if(is_nil(Map.get(map, "custom_data")),
           do: nil,
-          else: Map.new(Map.get(map, "custom_data"), fn {key, value} -> {key, value} end)
+          else: Inttegro.CustomDataInput.from_map(Map.get(map, "custom_data"))
         ),
       fee: Inttegro.Money.AmountParams.from_map(Map.fetch!(map, "fee"))
     }
@@ -2297,13 +2267,7 @@ defmodule Inttegro.Orders.ShippingDetailsInput do
       "tax_code" =>
         if(is_nil(value.tax_code), do: nil, else: Inttegro.Codec.encode(value.tax_code)),
       "custom_data" =>
-        if(is_nil(value.custom_data),
-          do: nil,
-          else:
-            Map.new(value.custom_data, fn {key, value} ->
-              {to_string(key), Inttegro.Codec.encode(value)}
-            end)
-        ),
+        if(is_nil(value.custom_data), do: nil, else: Inttegro.Codec.encode(value.custom_data)),
       "fee" => Inttegro.Codec.encode(value.fee)
     }
     |> Enum.reject(fn {_key, item} -> is_nil(item) end)
@@ -2395,7 +2359,7 @@ defmodule Inttegro.Orders.UpdateRequest do
   @typedoc Inttegro.Docs.type_doc(__MODULE__, :request)
   @type t :: %__MODULE__{
           clear_payment_method: boolean() | nil,
-          custom_data: %{optional(String.t()) => String.t()} | nil,
+          custom_data: Inttegro.CustomDataInput.t() | nil,
           invoice_settings: Inttegro.Invoices.SettingsInput.t() | nil,
           finalize: boolean() | nil,
           line_items: [Inttegro.Orders.LineItemInput.t()] | nil,
@@ -2422,7 +2386,7 @@ defmodule Inttegro.Orders.UpdateRequest do
       custom_data:
         if(is_nil(Map.get(map, "custom_data")),
           do: nil,
-          else: Map.new(Map.get(map, "custom_data"), fn {key, value} -> {key, value} end)
+          else: Inttegro.CustomDataInput.from_map(Map.get(map, "custom_data"))
         ),
       invoice_settings:
         if(is_nil(Map.get(map, "invoice_settings")),
@@ -2478,13 +2442,7 @@ defmodule Inttegro.Orders.UpdateRequest do
           else: Inttegro.Codec.encode(value.clear_payment_method)
         ),
       "custom_data" =>
-        if(is_nil(value.custom_data),
-          do: nil,
-          else:
-            Map.new(value.custom_data, fn {key, value} ->
-              {to_string(key), Inttegro.Codec.encode(value)}
-            end)
-        ),
+        if(is_nil(value.custom_data), do: nil, else: Inttegro.Codec.encode(value.custom_data)),
       "invoice_settings" =>
         if(is_nil(value.invoice_settings),
           do: nil,

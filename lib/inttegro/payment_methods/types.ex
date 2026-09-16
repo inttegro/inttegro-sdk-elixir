@@ -219,7 +219,7 @@ defmodule Inttegro.PaymentMethods.PaymentMethod do
           bank_account: Inttegro.PaymentMethods.BankAccount.t() | nil,
           card: Inttegro.PaymentMethods.Card.t() | nil,
           created_at: DateTime.t(),
-          custom_data: %{optional(String.t()) => String.t()} | nil,
+          custom_data: Inttegro.CustomData.t() | nil,
           customer_id: String.t(),
           ephemeral: boolean() | nil,
           expires_on: DateTime.t() | nil,
@@ -259,7 +259,7 @@ defmodule Inttegro.PaymentMethods.PaymentMethod do
       custom_data:
         if(is_nil(Map.get(map, "custom_data")),
           do: nil,
-          else: Map.new(Map.get(map, "custom_data"), fn {key, value} -> {key, value} end)
+          else: Inttegro.CustomData.from_map(Map.get(map, "custom_data"))
         ),
       customer_id: Map.fetch!(map, "customer_id"),
       ephemeral: if(is_nil(Map.get(map, "ephemeral")), do: nil, else: Map.get(map, "ephemeral")),
@@ -311,13 +311,7 @@ defmodule Inttegro.PaymentMethods.PaymentMethod do
       "card" => if(is_nil(value.card), do: nil, else: Inttegro.Codec.encode(value.card)),
       "created_at" => Inttegro.Codec.encode(value.created_at),
       "custom_data" =>
-        if(is_nil(value.custom_data),
-          do: nil,
-          else:
-            Map.new(value.custom_data, fn {key, value} ->
-              {to_string(key), Inttegro.Codec.encode(value)}
-            end)
-        ),
+        if(is_nil(value.custom_data), do: nil, else: Inttegro.Codec.encode(value.custom_data)),
       "customer_id" => Inttegro.Codec.encode(value.customer_id),
       "ephemeral" =>
         if(is_nil(value.ephemeral), do: nil, else: Inttegro.Codec.encode(value.ephemeral)),
@@ -1448,7 +1442,7 @@ defmodule Inttegro.PaymentMethods.TokenizeMobileMoneyRequest do
 
   @typedoc Inttegro.Docs.type_doc(__MODULE__, :request)
   @type t :: %__MODULE__{
-          custom_data: %{optional(String.t()) => String.t()} | nil,
+          custom_data: Inttegro.CustomDataInput.t() | nil,
           customer_id: String.t(),
           type: Inttegro.PaymentMethods.Type.t(),
           mobile_money: Inttegro.PaymentMethods.TokenizeMobileMoneyRequestMobileMoney.t(),
@@ -1464,7 +1458,7 @@ defmodule Inttegro.PaymentMethods.TokenizeMobileMoneyRequest do
       custom_data:
         if(is_nil(Map.get(map, "custom_data")),
           do: nil,
-          else: Map.new(Map.get(map, "custom_data"), fn {key, value} -> {key, value} end)
+          else: Inttegro.CustomDataInput.from_map(Map.get(map, "custom_data"))
         ),
       customer_id: Map.fetch!(map, "customer_id"),
       type: Inttegro.PaymentMethods.Type.decode(Map.fetch!(map, "type")),
@@ -1481,13 +1475,7 @@ defmodule Inttegro.PaymentMethods.TokenizeMobileMoneyRequest do
   def to_map(value) do
     %{
       "custom_data" =>
-        if(is_nil(value.custom_data),
-          do: nil,
-          else:
-            Map.new(value.custom_data, fn {key, value} ->
-              {to_string(key), Inttegro.Codec.encode(value)}
-            end)
-        ),
+        if(is_nil(value.custom_data), do: nil, else: Inttegro.Codec.encode(value.custom_data)),
       "customer_id" => Inttegro.Codec.encode(value.customer_id),
       "type" => Inttegro.PaymentMethods.Type.encode(value.type),
       "mobile_money" => Inttegro.Codec.encode(value.mobile_money),
@@ -1570,7 +1558,7 @@ defmodule Inttegro.PaymentMethods.UpdateRequest do
 
   @typedoc Inttegro.Docs.type_doc(__MODULE__, :request)
   @type t :: %__MODULE__{
-          custom_data: %{optional(String.t()) => String.t() | nil} | nil,
+          custom_data: Inttegro.CustomDataPatch.t() | nil,
           active: boolean() | nil,
           archived: boolean() | nil,
           owner: Inttegro.PaymentMethods.UpdateRequestOwner.t() | nil,
@@ -1586,10 +1574,7 @@ defmodule Inttegro.PaymentMethods.UpdateRequest do
       custom_data:
         if(is_nil(Map.get(map, "custom_data")),
           do: nil,
-          else:
-            Map.new(Map.get(map, "custom_data"), fn {key, value} ->
-              {key, if(is_nil(value), do: nil, else: value)}
-            end)
+          else: Inttegro.CustomDataPatch.from_map(Map.get(map, "custom_data"))
         ),
       active: if(is_nil(Map.get(map, "active")), do: nil, else: Map.get(map, "active")),
       archived: if(is_nil(Map.get(map, "archived")), do: nil, else: Map.get(map, "archived")),
@@ -1607,13 +1592,7 @@ defmodule Inttegro.PaymentMethods.UpdateRequest do
   def to_map(value) do
     %{
       "custom_data" =>
-        if(is_nil(value.custom_data),
-          do: nil,
-          else:
-            Map.new(value.custom_data, fn {key, value} ->
-              {to_string(key), if(is_nil(value), do: nil, else: Inttegro.Codec.encode(value))}
-            end)
-        ),
+        if(is_nil(value.custom_data), do: nil, else: Inttegro.Codec.encode(value.custom_data)),
       "active" => if(is_nil(value.active), do: nil, else: Inttegro.Codec.encode(value.active)),
       "archived" =>
         if(is_nil(value.archived), do: nil, else: Inttegro.Codec.encode(value.archived)),

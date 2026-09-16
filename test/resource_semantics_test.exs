@@ -78,4 +78,39 @@ defmodule Inttegro.ResourceSemanticsTest do
     assert Inttegro.PaymentMethods.PaymentMethod.to_map(method)["fingerprint"] ==
              "ifp_v1_app_customer"
   end
+
+  test "custom data keeps open-ended JSON behind immutable semantic values" do
+    input =
+      Inttegro.CustomDataInput.new!(%{"campaign" => "launch", "attempt" => 1})
+      |> Inttegro.CustomDataInput.put("context", %{"source" => "studio"})
+
+    assert Inttegro.CustomDataInput.to_map(input) == %{
+             "attempt" => 1,
+             "campaign" => "launch",
+             "context" => %{"source" => "studio"}
+           }
+
+    patch =
+      Inttegro.CustomDataPatch.new!()
+      |> Inttegro.CustomDataPatch.set("campaign", "fall")
+      |> Inttegro.CustomDataPatch.unset("legacy")
+
+    assert Inttegro.CustomDataPatch.to_map(patch) == %{"campaign" => "fall", "legacy" => nil}
+
+    customer =
+      Inttegro.Customers.Customer.from_map(%{
+        "balance" => %{},
+        "created_at" => "2026-09-16T00:00:00Z",
+        "custom_data" => %{"segment" => "enterprise"},
+        "guest" => false,
+        "id" => "cu_123",
+        "name" => "Ama"
+      })
+
+    assert %Inttegro.CustomData{} = customer.custom_data
+
+    assert Inttegro.Customers.Customer.to_map(customer)["custom_data"] == %{
+             "segment" => "enterprise"
+           }
+  end
 end

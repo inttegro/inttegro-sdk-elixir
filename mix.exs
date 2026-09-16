@@ -1,7 +1,7 @@
 defmodule Inttegro.MixProject do
   use Mix.Project
 
-  @version "0.4.0"
+  @version "0.5.0"
 
   def project do
     [
@@ -51,6 +51,9 @@ defmodule Inttegro.MixProject do
         Inttegro.Checkout,
         Inttegro.Chimes,
         Inttegro.Client,
+        Inttegro.CustomData,
+        Inttegro.CustomDataInput,
+        Inttegro.CustomDataPatch,
         Inttegro.Customers,
         Inttegro.Errors,
         Inttegro.FileLinks,
@@ -95,6 +98,9 @@ defmodule Inttegro.MixProject do
         Foundation: [
           Inttegro,
           Inttegro.Client,
+          Inttegro.CustomData,
+          Inttegro.CustomDataInput,
+          Inttegro.CustomDataPatch,
           Inttegro.Errors,
           Inttegro.Telemetry,
           ~r/^Inttegro\.Client\./,

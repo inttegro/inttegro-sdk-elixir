@@ -51,7 +51,7 @@ defmodule Inttegro.Invoices.Settings do
           number: String.t() | nil,
           memo: String.t() | nil,
           footer: String.t() | nil,
-          custom_data: %{optional(String.t()) => String.t()} | nil
+          custom_data: Inttegro.CustomData.t() | nil
         }
   @doc Inttegro.Docs.constructor_doc(__MODULE__)
   @spec new!(map() | keyword()) :: t()
@@ -66,7 +66,7 @@ defmodule Inttegro.Invoices.Settings do
       custom_data:
         if(is_nil(Map.get(map, "custom_data")),
           do: nil,
-          else: Map.new(Map.get(map, "custom_data"), fn {key, value} -> {key, value} end)
+          else: Inttegro.CustomData.from_map(Map.get(map, "custom_data"))
         )
     }
   end
@@ -79,13 +79,7 @@ defmodule Inttegro.Invoices.Settings do
       "memo" => if(is_nil(value.memo), do: nil, else: Inttegro.Codec.encode(value.memo)),
       "footer" => if(is_nil(value.footer), do: nil, else: Inttegro.Codec.encode(value.footer)),
       "custom_data" =>
-        if(is_nil(value.custom_data),
-          do: nil,
-          else:
-            Map.new(value.custom_data, fn {key, value} ->
-              {to_string(key), Inttegro.Codec.encode(value)}
-            end)
-        )
+        if(is_nil(value.custom_data), do: nil, else: Inttegro.Codec.encode(value.custom_data))
     }
     |> Enum.reject(fn {_key, item} -> is_nil(item) end)
     |> Map.new()
@@ -101,7 +95,7 @@ defmodule Inttegro.Invoices.SettingsInput do
           number: String.t() | nil,
           memo: String.t() | nil,
           footer: String.t() | nil,
-          custom_data: %{optional(String.t()) => String.t()} | nil
+          custom_data: Inttegro.CustomDataInput.t() | nil
         }
   @doc Inttegro.Docs.constructor_doc(__MODULE__)
   @spec new!(map() | keyword()) :: t()
@@ -116,7 +110,7 @@ defmodule Inttegro.Invoices.SettingsInput do
       custom_data:
         if(is_nil(Map.get(map, "custom_data")),
           do: nil,
-          else: Map.new(Map.get(map, "custom_data"), fn {key, value} -> {key, value} end)
+          else: Inttegro.CustomDataInput.from_map(Map.get(map, "custom_data"))
         )
     }
   end
@@ -129,13 +123,7 @@ defmodule Inttegro.Invoices.SettingsInput do
       "memo" => if(is_nil(value.memo), do: nil, else: Inttegro.Codec.encode(value.memo)),
       "footer" => if(is_nil(value.footer), do: nil, else: Inttegro.Codec.encode(value.footer)),
       "custom_data" =>
-        if(is_nil(value.custom_data),
-          do: nil,
-          else:
-            Map.new(value.custom_data, fn {key, value} ->
-              {to_string(key), Inttegro.Codec.encode(value)}
-            end)
-        )
+        if(is_nil(value.custom_data), do: nil, else: Inttegro.Codec.encode(value.custom_data))
     }
     |> Enum.reject(fn {_key, item} -> is_nil(item) end)
     |> Map.new()

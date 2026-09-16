@@ -15,7 +15,7 @@ defmodule Inttegro.Customers.CreateRequest do
   @typedoc Inttegro.Docs.type_doc(__MODULE__, :request)
   @type t :: %__MODULE__{
           billing_address: Inttegro.Customers.AddressInput.t() | nil,
-          custom_data: %{optional(String.t()) => term()} | nil,
+          custom_data: Inttegro.CustomDataInput.t() | nil,
           email_address: String.t() | nil,
           phone_number: String.t() | nil,
           reference: String.t() | nil,
@@ -38,7 +38,7 @@ defmodule Inttegro.Customers.CreateRequest do
       custom_data:
         if(is_nil(Map.get(map, "custom_data")),
           do: nil,
-          else: Map.new(Map.get(map, "custom_data"), fn {key, value} -> {key, value} end)
+          else: Inttegro.CustomDataInput.from_map(Map.get(map, "custom_data"))
         ),
       email_address:
         if(is_nil(Map.get(map, "email_address")), do: nil, else: Map.get(map, "email_address")),
@@ -65,13 +65,7 @@ defmodule Inttegro.Customers.CreateRequest do
           else: Inttegro.Codec.encode(value.billing_address)
         ),
       "custom_data" =>
-        if(is_nil(value.custom_data),
-          do: nil,
-          else:
-            Map.new(value.custom_data, fn {key, value} ->
-              {to_string(key), Inttegro.Codec.encode(value)}
-            end)
-        ),
+        if(is_nil(value.custom_data), do: nil, else: Inttegro.Codec.encode(value.custom_data)),
       "email_address" =>
         if(is_nil(value.email_address), do: nil, else: Inttegro.Codec.encode(value.email_address)),
       "phone_number" =>
@@ -114,7 +108,7 @@ defmodule Inttegro.Customers.Customer do
           balance: %{optional(String.t()) => Inttegro.Customers.BalanceValue.t()},
           billing_address: Inttegro.Customers.Address.t() | nil,
           created_at: DateTime.t(),
-          custom_data: %{optional(String.t()) => String.t()} | nil,
+          custom_data: Inttegro.CustomData.t() | nil,
           email_address: String.t() | nil,
           guest: boolean(),
           id: String.t(),
@@ -146,7 +140,7 @@ defmodule Inttegro.Customers.Customer do
       custom_data:
         if(is_nil(Map.get(map, "custom_data")),
           do: nil,
-          else: Map.new(Map.get(map, "custom_data"), fn {key, value} -> {key, value} end)
+          else: Inttegro.CustomData.from_map(Map.get(map, "custom_data"))
         ),
       email_address:
         if(is_nil(Map.get(map, "email_address")), do: nil, else: Map.get(map, "email_address")),
@@ -186,13 +180,7 @@ defmodule Inttegro.Customers.Customer do
         ),
       "created_at" => Inttegro.Codec.encode(value.created_at),
       "custom_data" =>
-        if(is_nil(value.custom_data),
-          do: nil,
-          else:
-            Map.new(value.custom_data, fn {key, value} ->
-              {to_string(key), Inttegro.Codec.encode(value)}
-            end)
-        ),
+        if(is_nil(value.custom_data), do: nil, else: Inttegro.Codec.encode(value.custom_data)),
       "email_address" =>
         if(is_nil(value.email_address), do: nil, else: Inttegro.Codec.encode(value.email_address)),
       "guest" => Inttegro.Codec.encode(value.guest),
@@ -383,7 +371,7 @@ defmodule Inttegro.Customers.DataInput do
   @typedoc Inttegro.Docs.type_doc(__MODULE__, :request)
   @type t :: %__MODULE__{
           reference: String.t() | nil,
-          custom_data: %{optional(String.t()) => term()} | nil,
+          custom_data: Inttegro.CustomDataInput.t() | nil,
           name: String.t(),
           email_address: String.t(),
           phone_number: String.t()
@@ -399,7 +387,7 @@ defmodule Inttegro.Customers.DataInput do
       custom_data:
         if(is_nil(Map.get(map, "custom_data")),
           do: nil,
-          else: Map.new(Map.get(map, "custom_data"), fn {key, value} -> {key, value} end)
+          else: Inttegro.CustomDataInput.from_map(Map.get(map, "custom_data"))
         ),
       name: Map.fetch!(map, "name"),
       email_address: Map.fetch!(map, "email_address"),
@@ -414,13 +402,7 @@ defmodule Inttegro.Customers.DataInput do
       "reference" =>
         if(is_nil(value.reference), do: nil, else: Inttegro.Codec.encode(value.reference)),
       "custom_data" =>
-        if(is_nil(value.custom_data),
-          do: nil,
-          else:
-            Map.new(value.custom_data, fn {key, value} ->
-              {to_string(key), Inttegro.Codec.encode(value)}
-            end)
-        ),
+        if(is_nil(value.custom_data), do: nil, else: Inttegro.Codec.encode(value.custom_data)),
       "name" => Inttegro.Codec.encode(value.name),
       "email_address" => Inttegro.Codec.encode(value.email_address),
       "phone_number" => Inttegro.Codec.encode(value.phone_number)
@@ -553,7 +535,7 @@ defmodule Inttegro.Customers.UpdateRequest do
   @typedoc Inttegro.Docs.type_doc(__MODULE__, :request)
   @type t :: %__MODULE__{
           billing_address: Inttegro.Customers.AddressInput.t() | nil,
-          custom_data: %{optional(String.t()) => term()} | nil,
+          custom_data: Inttegro.CustomDataInput.t() | nil,
           email_address: String.t() | nil,
           name: String.t() | nil,
           phone_number: String.t() | nil,
@@ -578,7 +560,7 @@ defmodule Inttegro.Customers.UpdateRequest do
       custom_data:
         if(is_nil(Map.get(map, "custom_data")),
           do: nil,
-          else: Map.new(Map.get(map, "custom_data"), fn {key, value} -> {key, value} end)
+          else: Inttegro.CustomDataInput.from_map(Map.get(map, "custom_data"))
         ),
       email_address:
         if(is_nil(Map.get(map, "email_address")), do: nil, else: Map.get(map, "email_address")),
@@ -607,13 +589,7 @@ defmodule Inttegro.Customers.UpdateRequest do
           else: Inttegro.Codec.encode(value.billing_address)
         ),
       "custom_data" =>
-        if(is_nil(value.custom_data),
-          do: nil,
-          else:
-            Map.new(value.custom_data, fn {key, value} ->
-              {to_string(key), Inttegro.Codec.encode(value)}
-            end)
-        ),
+        if(is_nil(value.custom_data), do: nil, else: Inttegro.Codec.encode(value.custom_data)),
       "email_address" =>
         if(is_nil(value.email_address), do: nil, else: Inttegro.Codec.encode(value.email_address)),
       "name" => if(is_nil(value.name), do: nil, else: Inttegro.Codec.encode(value.name)),

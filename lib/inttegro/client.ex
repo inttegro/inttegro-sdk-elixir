@@ -35,9 +35,9 @@ defmodule Inttegro.Files.CreateRequest do
   Binary upload input for `Inttegro.Files.create/3`.
 
   `file_name` is the client-visible name sent in the multipart request, `bytes` is the complete
-  binary payload, and `purpose` selects the server-side file policy. `custom_data` values must be
-  strings. For large inputs, account for the fact that this SDK currently holds the payload in
-  memory while constructing the multipart request.
+  binary payload, and `purpose` selects the server-side file policy. Wrap open-ended `custom_data`
+  values in `Inttegro.CustomDataInput`. For large inputs, account for the fact that this SDK
+  currently holds the payload in memory while constructing the multipart request.
   """
   @enforce_keys [:file_name, :bytes, :purpose]
   defstruct [:file_name, :bytes, :purpose, :title, :custom_data]
@@ -48,7 +48,7 @@ defmodule Inttegro.Files.CreateRequest do
           bytes: binary(),
           purpose: String.t(),
           title: String.t() | nil,
-          custom_data: %{optional(String.t()) => String.t()} | nil
+          custom_data: Inttegro.CustomDataInput.t() | nil
         }
 
   @doc "Builds an upload request and raises `KeyError` when a required field is missing."
@@ -333,7 +333,7 @@ defmodule Inttegro.Client do
   The SDK does not configure an exporter or send reports to Inttegro on its own. See the
   Observability guide for the event contract and privacy guarantees.
   """
-  @version "0.4.0"
+  @version "0.5.0"
   @enforce_keys [:api_key, :base_url, :http]
   defstruct [
     :api_key,
@@ -542,7 +542,8 @@ defmodule Inttegro.Client do
       multipart(request.file_name, request.bytes, %{
         "purpose" => request.purpose,
         "title" => request.title,
-        "custom_data" => request.custom_data && Jason.encode!(request.custom_data)
+        "custom_data" =>
+          request.custom_data && Jason.encode!(Inttegro.Codec.encode(request.custom_data))
       })
 
     upload(client, path, body, content_type, [], options, operation, field, true)

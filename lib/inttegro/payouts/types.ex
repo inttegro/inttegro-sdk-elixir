@@ -225,7 +225,7 @@ defmodule Inttegro.Payouts.Payout do
           amount: Inttegro.Money.Amount.t() | nil,
           balance_transactions: [String.t()] | nil,
           canceled_at: DateTime.t() | nil,
-          custom_data: %{optional(String.t()) => String.t()} | nil,
+          custom_data: Inttegro.CustomData.t() | nil,
           destination_id: String.t(),
           error: Inttegro.Payouts.Error.t() | nil,
           execute_after: DateTime.t(),
@@ -270,7 +270,7 @@ defmodule Inttegro.Payouts.Payout do
       custom_data:
         if(is_nil(Map.get(map, "custom_data")),
           do: nil,
-          else: Map.new(Map.get(map, "custom_data"), fn {key, value} -> {key, value} end)
+          else: Inttegro.CustomData.from_map(Map.get(map, "custom_data"))
         ),
       destination_id: Map.fetch!(map, "destination_id"),
       error:
@@ -334,13 +334,7 @@ defmodule Inttegro.Payouts.Payout do
       "canceled_at" =>
         if(is_nil(value.canceled_at), do: nil, else: Inttegro.Codec.encode(value.canceled_at)),
       "custom_data" =>
-        if(is_nil(value.custom_data),
-          do: nil,
-          else:
-            Map.new(value.custom_data, fn {key, value} ->
-              {to_string(key), Inttegro.Codec.encode(value)}
-            end)
-        ),
+        if(is_nil(value.custom_data), do: nil, else: Inttegro.Codec.encode(value.custom_data)),
       "destination_id" => Inttegro.Codec.encode(value.destination_id),
       "error" => if(is_nil(value.error), do: nil, else: Inttegro.Codec.encode(value.error)),
       "execute_after" => Inttegro.Codec.encode(value.execute_after),

@@ -323,7 +323,7 @@ defmodule Inttegro.Chimes.Chime do
   @typedoc Inttegro.Docs.type_doc(__MODULE__, :domain)
   @type t :: %__MODULE__{
           created_at: DateTime.t(),
-          custom_data: %{optional(String.t()) => String.t()} | nil,
+          custom_data: Inttegro.CustomData.t() | nil,
           customer_id: String.t() | nil,
           email: Inttegro.Chimes.EmailMessage.t() | nil,
           full_message: String.t(),
@@ -345,7 +345,7 @@ defmodule Inttegro.Chimes.Chime do
       custom_data:
         if(is_nil(Map.get(map, "custom_data")),
           do: nil,
-          else: Map.new(Map.get(map, "custom_data"), fn {key, value} -> {key, value} end)
+          else: Inttegro.CustomData.from_map(Map.get(map, "custom_data"))
         ),
       customer_id:
         if(is_nil(Map.get(map, "customer_id")), do: nil, else: Map.get(map, "customer_id")),
@@ -378,13 +378,7 @@ defmodule Inttegro.Chimes.Chime do
     %{
       "created_at" => Inttegro.Codec.encode(value.created_at),
       "custom_data" =>
-        if(is_nil(value.custom_data),
-          do: nil,
-          else:
-            Map.new(value.custom_data, fn {key, value} ->
-              {to_string(key), Inttegro.Codec.encode(value)}
-            end)
-        ),
+        if(is_nil(value.custom_data), do: nil, else: Inttegro.Codec.encode(value.custom_data)),
       "customer_id" =>
         if(is_nil(value.customer_id), do: nil, else: Inttegro.Codec.encode(value.customer_id)),
       "email" => if(is_nil(value.email), do: nil, else: Inttegro.Codec.encode(value.email)),
@@ -1761,7 +1755,7 @@ defmodule Inttegro.Chimes.SendRequest do
           message_template: Inttegro.MessageTemplates.ReferenceInput.t() | nil,
           sender_id: String.t() | nil,
           purpose: String.t() | nil,
-          custom_data: %{optional(String.t()) => String.t()} | nil,
+          custom_data: Inttegro.CustomDataInput.t() | nil,
           request_meta: Inttegro.Chimes.SendRequestMeta.t() | nil,
           recipient: Inttegro.Chimes.SendRequestRecipient.t()
         }
@@ -1790,7 +1784,7 @@ defmodule Inttegro.Chimes.SendRequest do
       custom_data:
         if(is_nil(Map.get(map, "custom_data")),
           do: nil,
-          else: Map.new(Map.get(map, "custom_data"), fn {key, value} -> {key, value} end)
+          else: Inttegro.CustomDataInput.from_map(Map.get(map, "custom_data"))
         ),
       request_meta:
         if(is_nil(Map.get(map, "request_meta")),
@@ -1817,13 +1811,7 @@ defmodule Inttegro.Chimes.SendRequest do
         if(is_nil(value.sender_id), do: nil, else: Inttegro.Codec.encode(value.sender_id)),
       "purpose" => if(is_nil(value.purpose), do: nil, else: Inttegro.Codec.encode(value.purpose)),
       "custom_data" =>
-        if(is_nil(value.custom_data),
-          do: nil,
-          else:
-            Map.new(value.custom_data, fn {key, value} ->
-              {to_string(key), Inttegro.Codec.encode(value)}
-            end)
-        ),
+        if(is_nil(value.custom_data), do: nil, else: Inttegro.Codec.encode(value.custom_data)),
       "request_meta" =>
         if(is_nil(value.request_meta), do: nil, else: Inttegro.Codec.encode(value.request_meta)),
       "recipient" => Inttegro.Codec.encode(value.recipient)
