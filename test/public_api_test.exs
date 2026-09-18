@@ -193,7 +193,20 @@ defmodule Inttegro.PublicAPITest do
       Inttegro.Refunds.Refund.from_map(%{
         "created_at" => "2026-09-09T12:00:00Z",
         "id" => "rf_123",
-        "line_items" => [],
+        "line_items" => [
+          %{
+            "id" => "rli_123",
+            "order_line_item_id" => "oli_123",
+            "order_line_item" => %{
+              "id" => "oli_123",
+              "type" => "product",
+              "quantity" => 2,
+              "product" => %{"id" => "prod_123", "name" => "Premium subscription"}
+            },
+            "original_amount_paid" => %{"currency" => "ghs", "value" => 200},
+            "refund_amount" => %{"currency" => "ghs", "value" => 100}
+          }
+        ],
         "order_id" => "or_123",
         "reason" => "requested_by_customer",
         "settlement" => %{
@@ -219,6 +232,15 @@ defmodule Inttegro.PublicAPITest do
 
     assert refund.settlement.payment_method.bank_account.ghana_bank_account.account_number ==
              "****1234"
+
+    assert refund.line_items |> hd() |> Map.fetch!(:order_line_item) |> Map.fetch!(:type) ==
+             :product
+
+    assert refund.line_items
+           |> hd()
+           |> Map.fetch!(:order_line_item)
+           |> Map.fetch!(:product)
+           |> Map.fetch!(:id) == "prod_123"
 
     assert_raise FunctionClauseError, fn ->
       Inttegro.Refunds.Settlement.from_map(%{

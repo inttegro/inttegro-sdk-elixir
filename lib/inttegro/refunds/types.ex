@@ -681,11 +681,187 @@ defmodule Inttegro.Refunds.Refund do
   end
 end
 
+defmodule Inttegro.Refunds.OrderLineItemProduct do
+  @moduledoc """
+  Product identity captured in a refund order-line snapshot, including the
+  catalog ID when the originating order used a catalog product.
+  """
+  @enforce_keys [:name]
+  defstruct id: nil, name: nil
+  @type t :: %__MODULE__{id: String.t() | nil, name: String.t()}
+
+  @spec from_map(map()) :: t()
+  def from_map(map) when is_map(map),
+    do: %__MODULE__{id: Map.get(map, "id"), name: Map.fetch!(map, "name")}
+
+  @spec to_map(t()) :: map()
+  def to_map(value) do
+    %{"id" => value.id, "name" => value.name}
+    |> Enum.reject(fn {_key, item} -> is_nil(item) end)
+    |> Map.new()
+  end
+end
+
+defmodule Inttegro.Refunds.OrderLineItemAdjustment do
+  @moduledoc """
+  Descriptive label and detail captured for a fee or shipping line so refund
+  history remains readable without another order lookup.
+  """
+  defstruct label: nil, description: nil
+  @type t :: %__MODULE__{label: String.t() | nil, description: String.t() | nil}
+
+  @spec from_map(map()) :: t()
+  def from_map(map) when is_map(map),
+    do: %__MODULE__{label: Map.get(map, "label"), description: Map.get(map, "description")}
+
+  @spec to_map(t()) :: map()
+  def to_map(value) do
+    %{"label" => value.label, "description" => value.description}
+    |> Enum.reject(fn {_key, item} -> is_nil(item) end)
+    |> Map.new()
+  end
+end
+
+defmodule Inttegro.Refunds.OrderProductLineItem do
+  @moduledoc """
+  Immutable product line captured from the originating order, including the
+  purchased quantity and a caller-safe product identity snapshot.
+  """
+  @enforce_keys [:id, :type, :quantity, :product]
+  defstruct id: nil, type: nil, quantity: nil, product: nil
+
+  @type t :: %__MODULE__{
+          id: String.t(),
+          type: :product,
+          quantity: pos_integer(),
+          product: Inttegro.Refunds.OrderLineItemProduct.t()
+        }
+
+  @spec from_map(map()) :: t()
+  def from_map(%{"type" => "product"} = map) do
+    %__MODULE__{
+      id: Map.fetch!(map, "id"),
+      type: :product,
+      quantity: Map.fetch!(map, "quantity"),
+      product: Inttegro.Refunds.OrderLineItemProduct.from_map(Map.fetch!(map, "product"))
+    }
+  end
+
+  @spec to_map(t()) :: map()
+  def to_map(value),
+    do: %{
+      "id" => value.id,
+      "type" => "product",
+      "quantity" => value.quantity,
+      "product" => Inttegro.Refunds.OrderLineItemProduct.to_map(value.product)
+    }
+end
+
+defmodule Inttegro.Refunds.OrderFeeLineItem do
+  @moduledoc """
+  Immutable fee line captured from the originating order so callers can
+  present the refunded charge without retrieving the order separately.
+  """
+  @enforce_keys [:id, :type, :fee]
+  defstruct id: nil, type: nil, fee: nil
+
+  @type t :: %__MODULE__{
+          id: String.t(),
+          type: :fee,
+          fee: Inttegro.Refunds.OrderLineItemAdjustment.t()
+        }
+
+  @spec from_map(map()) :: t()
+  def from_map(%{"type" => "fee"} = map) do
+    %__MODULE__{
+      id: Map.fetch!(map, "id"),
+      type: :fee,
+      fee: Inttegro.Refunds.OrderLineItemAdjustment.from_map(Map.fetch!(map, "fee"))
+    }
+  end
+
+  @spec to_map(t()) :: map()
+  def to_map(value),
+    do: %{
+      "id" => value.id,
+      "type" => "fee",
+      "fee" => Inttegro.Refunds.OrderLineItemAdjustment.to_map(value.fee)
+    }
+end
+
+defmodule Inttegro.Refunds.OrderShippingLineItem do
+  @moduledoc """
+  Immutable shipping line captured from the originating order so callers can
+  present the refunded delivery charge without another API request.
+  """
+  @enforce_keys [:id, :type, :shipping]
+  defstruct id: nil, type: nil, shipping: nil
+
+  @type t :: %__MODULE__{
+          id: String.t(),
+          type: :shipping,
+          shipping: Inttegro.Refunds.OrderLineItemAdjustment.t()
+        }
+
+  @spec from_map(map()) :: t()
+  def from_map(%{"type" => "shipping"} = map) do
+    %__MODULE__{
+      id: Map.fetch!(map, "id"),
+      type: :shipping,
+      shipping: Inttegro.Refunds.OrderLineItemAdjustment.from_map(Map.fetch!(map, "shipping"))
+    }
+  end
+
+  @spec to_map(t()) :: map()
+  def to_map(value),
+    do: %{
+      "id" => value.id,
+      "type" => "shipping",
+      "shipping" => Inttegro.Refunds.OrderLineItemAdjustment.to_map(value.shipping)
+    }
+end
+
+defmodule Inttegro.Refunds.OrderLineItem do
+  @moduledoc """
+  Immutable order-line snapshot selected by its required `type` discriminator.
+  The value is a product, fee, or shipping line with a typed detail structure.
+  """
+  @type t ::
+          Inttegro.Refunds.OrderProductLineItem.t()
+          | Inttegro.Refunds.OrderFeeLineItem.t()
+          | Inttegro.Refunds.OrderShippingLineItem.t()
+
+  @spec from_map(map()) :: t()
+  def from_map(%{"type" => "product"} = map),
+    do: Inttegro.Refunds.OrderProductLineItem.from_map(map)
+
+  def from_map(%{"type" => "fee"} = map), do: Inttegro.Refunds.OrderFeeLineItem.from_map(map)
+
+  def from_map(%{"type" => "shipping"} = map),
+    do: Inttegro.Refunds.OrderShippingLineItem.from_map(map)
+
+  @spec to_map(t()) :: map()
+  def to_map(%Inttegro.Refunds.OrderProductLineItem{} = value),
+    do: Inttegro.Refunds.OrderProductLineItem.to_map(value)
+
+  def to_map(%Inttegro.Refunds.OrderFeeLineItem{} = value),
+    do: Inttegro.Refunds.OrderFeeLineItem.to_map(value)
+
+  def to_map(%Inttegro.Refunds.OrderShippingLineItem{} = value),
+    do: Inttegro.Refunds.OrderShippingLineItem.to_map(value)
+end
+
 defmodule Inttegro.Refunds.LineItem do
-  @moduledoc Inttegro.Docs.module_doc(__MODULE__, :domain)
+  @moduledoc """
+  A line-level refund allocation.
+
+  `order_line_item_id` is retained for compatibility. Prefer `order_line_item.id`
+  when the immutable order-line snapshot is present.
+  """
   @enforce_keys [:id, :order_line_item_id, :original_amount_paid, :refund_amount]
   defstruct id: nil,
             order_line_item_id: nil,
+            order_line_item: nil,
             original_amount_paid: nil,
             reason: nil,
             reason_details: nil,
@@ -695,6 +871,7 @@ defmodule Inttegro.Refunds.LineItem do
   @type t :: %__MODULE__{
           id: String.t(),
           order_line_item_id: String.t(),
+          order_line_item: Inttegro.Refunds.OrderLineItem.t() | nil,
           original_amount_paid: Inttegro.Money.Amount.t(),
           reason: Inttegro.Refunds.Reason.t() | nil,
           reason_details: String.t() | nil,
@@ -709,6 +886,11 @@ defmodule Inttegro.Refunds.LineItem do
     %__MODULE__{
       id: Map.fetch!(map, "id"),
       order_line_item_id: Map.fetch!(map, "order_line_item_id"),
+      order_line_item:
+        if(is_nil(Map.get(map, "order_line_item")),
+          do: nil,
+          else: Inttegro.Refunds.OrderLineItem.from_map(Map.get(map, "order_line_item"))
+        ),
       original_amount_paid:
         Inttegro.Money.Amount.from_map(Map.fetch!(map, "original_amount_paid")),
       reason:
@@ -728,6 +910,11 @@ defmodule Inttegro.Refunds.LineItem do
     %{
       "id" => Inttegro.Codec.encode(value.id),
       "order_line_item_id" => Inttegro.Codec.encode(value.order_line_item_id),
+      "order_line_item" =>
+        if(is_nil(value.order_line_item),
+          do: nil,
+          else: Inttegro.Refunds.OrderLineItem.to_map(value.order_line_item)
+        ),
       "original_amount_paid" => Inttegro.Codec.encode(value.original_amount_paid),
       "reason" =>
         if(is_nil(value.reason),
