@@ -22,6 +22,52 @@ defmodule Inttegro.Otp.AlphabetType do
     do: Enum.find_value(@values, value, fn {key, wire} -> if wire == value, do: key end)
 end
 
+defmodule Inttegro.Otp.Purpose do
+  @moduledoc Inttegro.Docs.module_doc(__MODULE__, :enum)
+  @typedoc Inttegro.Docs.type_doc(__MODULE__, :enum)
+  @type t ::
+          :account_creation
+          | :account_recovery
+          | :email_verification
+          | :financial_account_verification
+          | :password_reset
+          | :payment_confirmation
+          | :payment_method_verification
+          | :payout_confirmation
+          | :phone_verification
+          | :sensitive_action
+          | :sign_in
+          | :transaction_confirmation
+          | :unspecified
+          | String.t()
+  @values %{
+    account_creation: "account_creation",
+    account_recovery: "account_recovery",
+    email_verification: "email_verification",
+    financial_account_verification: "financial_account_verification",
+    password_reset: "password_reset",
+    payment_confirmation: "payment_confirmation",
+    payment_method_verification: "payment_method_verification",
+    payout_confirmation: "payout_confirmation",
+    phone_verification: "phone_verification",
+    sensitive_action: "sensitive_action",
+    sign_in: "sign_in",
+    transaction_confirmation: "transaction_confirmation",
+    unspecified: "unspecified"
+  }
+  @doc Inttegro.Docs.enum_values_doc(__MODULE__)
+  @spec values() :: [t()]
+  def values, do: Map.keys(@values)
+  @doc false
+  @spec encode(t()) :: String.t()
+  def encode(value) when is_atom(value), do: Map.fetch!(@values, value)
+  def encode(value) when is_binary(value), do: value
+  @doc false
+  @spec decode(String.t()) :: t()
+  def decode(value),
+    do: Enum.find_value(@values, value, fn {key, wire} -> if wire == value, do: key end)
+end
+
 defmodule Inttegro.Otp.Status do
   @moduledoc Inttegro.Docs.module_doc(__MODULE__, :enum)
   @typedoc Inttegro.Docs.type_doc(__MODULE__, :enum)
@@ -115,7 +161,7 @@ defmodule Inttegro.Otp.InitiateRequest do
   @type t :: %__MODULE__{
           async_delivery: boolean() | nil,
           message_template: String.t() | nil,
-          purpose: String.t() | nil,
+          purpose: Inttegro.Otp.Purpose.t(),
           sender: String.t() | nil,
           token_alphabet: String.t() | nil,
           token_alphabet_type: Inttegro.Otp.AlphabetType.t() | nil,
@@ -138,7 +184,7 @@ defmodule Inttegro.Otp.InitiateRequest do
           do: nil,
           else: Map.get(map, "message_template")
         ),
-      purpose: if(is_nil(Map.get(map, "purpose")), do: nil, else: Map.get(map, "purpose")),
+      purpose: Inttegro.Otp.Purpose.decode(Map.fetch!(map, "purpose")),
       sender: if(is_nil(Map.get(map, "sender")), do: nil, else: Map.get(map, "sender")),
       token_alphabet:
         if(is_nil(Map.get(map, "token_alphabet")), do: nil, else: Map.get(map, "token_alphabet")),
@@ -172,7 +218,7 @@ defmodule Inttegro.Otp.InitiateRequest do
           do: nil,
           else: Inttegro.Codec.encode(value.message_template)
         ),
-      "purpose" => if(is_nil(value.purpose), do: nil, else: Inttegro.Codec.encode(value.purpose)),
+      "purpose" => Inttegro.Otp.Purpose.encode(value.purpose),
       "sender" => if(is_nil(value.sender), do: nil, else: Inttegro.Codec.encode(value.sender)),
       "token_alphabet" =>
         if(is_nil(value.token_alphabet),

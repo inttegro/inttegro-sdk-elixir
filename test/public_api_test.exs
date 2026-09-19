@@ -9,6 +9,11 @@ defmodule Inttegro.PublicAPITest do
              Inttegro.Money.AmountParams.new!(currency: :ghs, value: 5_000)
   end
 
+  test "OTP purposes encode to their closed wire values" do
+    assert Inttegro.Otp.Purpose.encode(:sign_in) == "sign_in"
+    assert Inttegro.Otp.Purpose.decode("payment_confirmation") == :payment_confirmation
+  end
+
   test "wire envelopes are unwrapped into domain values" do
     Req.Test.stub(__MODULE__, fn conn ->
       Req.Test.json(conn, %{
