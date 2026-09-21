@@ -1,5 +1,12 @@
 # Changelog
 
+## 0.6.0
+
+- Added typed search across customers, financial accounts, orders, payouts, and
+  products, including filters, facets, sorting, cursor pagination, totals, and
+  freshness metadata.
+- Added typed verification purposes for OTP initiation requests.
+
 ## 0.5.0
 
 - Breaking: replaced raw custom-data maps with immutable `Inttegro.CustomData`,

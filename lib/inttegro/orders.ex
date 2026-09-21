@@ -545,4 +545,23 @@ defmodule Inttegro.Orders do
       {:ok, Inttegro.Orders.Page.from_map(value)}
     end
   end
+
+  @doc "Search orders with a typed resource-local query."
+  @spec search(Client.t(), Inttegro.Search.Request.t(), keyword()) ::
+          {:ok, Inttegro.Search.Page.t()} | {:error, Exception.t()}
+  def search(client, request, options \\ []) do
+    with {:ok, value} <-
+           Client.request(
+             client,
+             "POST",
+             "/orders/search",
+             Inttegro.Codec.encode(request),
+             options,
+             "orders.search",
+             "search",
+             true
+           ) do
+      {:ok, Inttegro.Search.Page.from_map(value)}
+    end
+  end
 end

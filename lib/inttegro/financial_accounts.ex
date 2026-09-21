@@ -244,4 +244,23 @@ defmodule Inttegro.FinancialAccounts do
       {:ok, Inttegro.FinancialAccounts.FinancialAccount.from_map(value)}
     end
   end
+
+  @doc "Search financial accounts with a typed resource-local query."
+  @spec search(Client.t(), Inttegro.Search.Request.t(), keyword()) ::
+          {:ok, Inttegro.Search.Page.t()} | {:error, Exception.t()}
+  def search(client, request, options \\ []) do
+    with {:ok, value} <-
+           Client.request(
+             client,
+             "POST",
+             "/financial_accounts/search",
+             Inttegro.Codec.encode(request),
+             options,
+             "financial_accounts.search",
+             "search",
+             true
+           ) do
+      {:ok, Inttegro.Search.Page.from_map(value)}
+    end
+  end
 end
