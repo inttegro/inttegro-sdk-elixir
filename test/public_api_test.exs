@@ -14,6 +14,39 @@ defmodule Inttegro.PublicAPITest do
     assert Inttegro.Otp.Purpose.decode("payment_confirmation") == :payment_confirmation
   end
 
+  test "balance transactions expose caller-safe allocation summaries" do
+    transaction =
+      Inttegro.BalanceTransactions.BalanceTransaction.from_map(%{
+	"id" => "bt_1",
+	"type" => "payment",
+	"payment_id" => "py_1",
+	"order_id" => "or_1",
+	"amount" => %{"currency" => "ghs", "value" => 2_500},
+	"available_amount" => %{"currency" => "ghs", "value" => 1_500},
+	"pending_amount" => %{"currency" => "ghs", "value" => 1_000},
+	"spent_amount" => %{"currency" => "ghs", "value" => 0},
+	"allocations" => [
+	  %{
+	    "id" => "bta_1",
+	    "type" => "payout",
+	    "status" => "pending",
+	    "payout" => %{
+	      "id" => "po_1",
+	      "amount" => %{"currency" => "ghs", "value" => 1_000}
+	    },
+	    "created_at" => "2026-09-07T00:01:00Z",
+	    "updated_at" => "2026-09-07T00:01:00Z"
+	  }
+	],
+	"created_at" => "2026-09-07T00:00:00Z"
+      })
+
+    assert transaction.available_amount.value == 1_500
+
+    assert [%{type: :payout, status: :pending, payout: %{id: "po_1"}}] =
+	     transaction.allocations
+  end
+
   test "wire envelopes are unwrapped into domain values" do
     Req.Test.stub(__MODULE__, fn conn ->
       Req.Test.json(conn, %{
