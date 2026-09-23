@@ -3,10 +3,11 @@
 defmodule Inttegro.BalanceTransactions.Type do
   @moduledoc Inttegro.Docs.module_doc(__MODULE__, :enum)
   @typedoc Inttegro.Docs.type_doc(__MODULE__, :enum)
-  @type t :: :payment | :refund | String.t()
+  @type t :: :payment | :refund | :payout | String.t()
   @values %{
     payment: "payment",
-    refund: "refund"
+    refund: "refund",
+    payout: "payout"
   }
   @doc Inttegro.Docs.enum_values_doc(__MODULE__)
   @spec values() :: [t()]
@@ -147,7 +148,7 @@ end
 
 defmodule Inttegro.BalanceTransactions.BalanceTransaction do
   @moduledoc Inttegro.Docs.module_doc(__MODULE__, :domain)
-  @enforce_keys [:amount, :created_at, :id, :order_id, :type]
+  @enforce_keys [:amount, :created_at, :id, :type]
   defstruct amount: nil,
             allocations: nil,
             available_amount: nil,
@@ -174,7 +175,7 @@ defmodule Inttegro.BalanceTransactions.BalanceTransaction do
           claimed_at: DateTime.t() | nil,
           created_at: DateTime.t(),
           id: String.t(),
-          order_id: String.t(),
+          order_id: String.t() | nil,
           paid_at: DateTime.t() | nil,
           payment_id: String.t() | nil,
           payout_id: String.t() | nil,
@@ -217,7 +218,7 @@ defmodule Inttegro.BalanceTransactions.BalanceTransaction do
         ),
       created_at: Inttegro.Codec.decode_timestamp(Map.fetch!(map, "created_at")),
       id: Map.fetch!(map, "id"),
-      order_id: Map.fetch!(map, "order_id"),
+      order_id: Map.get(map, "order_id"),
       paid_at:
         if(is_nil(Inttegro.Codec.decode_timestamp(Map.get(map, "paid_at"))),
           do: nil,

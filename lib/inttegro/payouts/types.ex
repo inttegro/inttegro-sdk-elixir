@@ -234,6 +234,7 @@ defmodule Inttegro.Payouts.Payout do
   @enforce_keys [:destination_id, :execute_after, :id, :initiated_at, :max_amount, :status]
   defstruct amount: nil,
             balance_transactions: nil,
+            balance_transaction_id: nil,
             canceled_at: nil,
             custom_data: nil,
             destination_id: nil,
@@ -259,6 +260,7 @@ defmodule Inttegro.Payouts.Payout do
   @type t :: %__MODULE__{
           amount: Inttegro.Money.Amount.t() | nil,
           balance_transactions: [Inttegro.Payouts.BalanceTransaction.t()] | nil,
+          balance_transaction_id: String.t() | nil,
           canceled_at: DateTime.t() | nil,
           custom_data: Inttegro.CustomData.t() | nil,
           destination_id: String.t(),
@@ -300,6 +302,7 @@ defmodule Inttegro.Payouts.Payout do
               Inttegro.Payouts.BalanceTransaction.from_map(item)
             end)
         ),
+      balance_transaction_id: Map.get(map, "balance_transaction_id"),
       canceled_at:
         if(is_nil(Inttegro.Codec.decode_timestamp(Map.get(map, "canceled_at"))),
           do: nil,
@@ -368,6 +371,11 @@ defmodule Inttegro.Payouts.Payout do
         if(is_nil(value.balance_transactions),
           do: nil,
           else: Enum.map(value.balance_transactions, fn item -> Inttegro.Codec.encode(item) end)
+        ),
+      "balance_transaction_id" =>
+        if(is_nil(value.balance_transaction_id),
+          do: nil,
+          else: Inttegro.Codec.encode(value.balance_transaction_id)
         ),
       "canceled_at" =>
         if(is_nil(value.canceled_at), do: nil, else: Inttegro.Codec.encode(value.canceled_at)),
