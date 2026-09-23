@@ -194,6 +194,41 @@ defmodule Inttegro.Payouts.PageRequest do
   end
 end
 
+defmodule Inttegro.Payouts.BalanceTransaction do
+  @moduledoc """
+  Describes one balance transaction that funded a payout, including both the
+  source's original amount and the exact amount allocated to this payout.
+  """
+  @enforce_keys [:allocated_amount, :amount, :id]
+  defstruct allocated_amount: nil, amount: nil, id: nil
+
+  @type t :: %__MODULE__{
+          allocated_amount: Inttegro.Money.Amount.t(),
+          amount: Inttegro.Money.Amount.t(),
+          id: String.t()
+        }
+
+  @doc false
+  @spec from_map(map()) :: t()
+  def from_map(map) when is_map(map) do
+    %__MODULE__{
+      allocated_amount: Inttegro.Money.Amount.from_map(Map.fetch!(map, "allocated_amount")),
+      amount: Inttegro.Money.Amount.from_map(Map.fetch!(map, "amount")),
+      id: Map.fetch!(map, "id")
+    }
+  end
+
+  @doc false
+  @spec to_map(t()) :: map()
+  def to_map(value) do
+    %{
+      "allocated_amount" => Inttegro.Codec.encode(value.allocated_amount),
+      "amount" => Inttegro.Codec.encode(value.amount),
+      "id" => Inttegro.Codec.encode(value.id)
+    }
+  end
+end
+
 defmodule Inttegro.Payouts.Payout do
   @moduledoc Inttegro.Docs.module_doc(__MODULE__, :domain)
   @enforce_keys [:destination_id, :execute_after, :id, :initiated_at, :max_amount, :status]
@@ -223,7 +258,7 @@ defmodule Inttegro.Payouts.Payout do
   @typedoc Inttegro.Docs.type_doc(__MODULE__, :domain)
   @type t :: %__MODULE__{
           amount: Inttegro.Money.Amount.t() | nil,
-          balance_transactions: [String.t()] | nil,
+          balance_transactions: [Inttegro.Payouts.BalanceTransaction.t()] | nil,
           canceled_at: DateTime.t() | nil,
           custom_data: Inttegro.CustomData.t() | nil,
           destination_id: String.t(),
@@ -260,7 +295,10 @@ defmodule Inttegro.Payouts.Payout do
       balance_transactions:
         if(is_nil(Map.get(map, "balance_transactions")),
           do: nil,
-          else: Enum.map(Map.get(map, "balance_transactions"), fn item -> item end)
+          else:
+            Enum.map(Map.get(map, "balance_transactions"), fn item ->
+              Inttegro.Payouts.BalanceTransaction.from_map(item)
+            end)
         ),
       canceled_at:
         if(is_nil(Inttegro.Codec.decode_timestamp(Map.get(map, "canceled_at"))),
