@@ -60,9 +60,9 @@ defmodule Inttegro.BalanceTransactions.AllocationUse do
   defstruct amount: nil, id: nil
 
   @type t :: %__MODULE__{
-	  amount: Inttegro.BalanceTransactions.Amount.t(),
-	  id: String.t()
-	}
+          amount: Inttegro.BalanceTransactions.Amount.t(),
+          id: String.t()
+        }
   @spec from_map(map()) :: t()
   def from_map(map) do
     %__MODULE__{
@@ -87,24 +87,24 @@ defmodule Inttegro.BalanceTransactions.Allocation do
   """
   @enforce_keys [:created_at, :id, :status, :type, :updated_at]
   defstruct completed_at: nil,
-	    created_at: nil,
-	    id: nil,
-	    payout: nil,
-	    refund: nil,
-	    status: nil,
-	    type: nil,
-	    updated_at: nil
+            created_at: nil,
+            id: nil,
+            payout: nil,
+            refund: nil,
+            status: nil,
+            type: nil,
+            updated_at: nil
 
   @type t :: %__MODULE__{
-	  completed_at: DateTime.t() | nil,
-	  created_at: DateTime.t(),
-	  id: String.t(),
-	  payout: Inttegro.BalanceTransactions.AllocationUse.t() | nil,
-	  refund: Inttegro.BalanceTransactions.AllocationUse.t() | nil,
-	  status: Inttegro.BalanceTransactions.AllocationStatus.t(),
-	  type: Inttegro.BalanceTransactions.AllocationType.t(),
-	  updated_at: DateTime.t()
-	}
+          completed_at: DateTime.t() | nil,
+          created_at: DateTime.t(),
+          id: String.t(),
+          payout: Inttegro.BalanceTransactions.AllocationUse.t() | nil,
+          refund: Inttegro.BalanceTransactions.AllocationUse.t() | nil,
+          status: Inttegro.BalanceTransactions.AllocationStatus.t(),
+          type: Inttegro.BalanceTransactions.AllocationType.t(),
+          updated_at: DateTime.t()
+        }
   @spec from_map(map()) :: t()
   def from_map(map) do
     %__MODULE__{
@@ -112,15 +112,15 @@ defmodule Inttegro.BalanceTransactions.Allocation do
       created_at: Inttegro.Codec.decode_timestamp(Map.fetch!(map, "created_at")),
       id: Map.fetch!(map, "id"),
       payout:
-	if(is_nil(Map.get(map, "payout")),
-	  do: nil,
-	  else: Inttegro.BalanceTransactions.AllocationUse.from_map(Map.get(map, "payout"))
-	),
+        if(is_nil(Map.get(map, "payout")),
+          do: nil,
+          else: Inttegro.BalanceTransactions.AllocationUse.from_map(Map.get(map, "payout"))
+        ),
       refund:
-	if(is_nil(Map.get(map, "refund")),
-	  do: nil,
-	  else: Inttegro.BalanceTransactions.AllocationUse.from_map(Map.get(map, "refund"))
-	),
+        if(is_nil(Map.get(map, "refund")),
+          do: nil,
+          else: Inttegro.BalanceTransactions.AllocationUse.from_map(Map.get(map, "refund"))
+        ),
       status: Inttegro.BalanceTransactions.AllocationStatus.decode(Map.fetch!(map, "status")),
       type: Inttegro.BalanceTransactions.AllocationType.decode(Map.fetch!(map, "type")),
       updated_at: Inttegro.Codec.decode_timestamp(Map.fetch!(map, "updated_at"))
@@ -131,7 +131,7 @@ defmodule Inttegro.BalanceTransactions.Allocation do
   def to_map(value) do
     %{
       "completed_at" =>
-	if(is_nil(value.completed_at), do: nil, else: Inttegro.Codec.encode(value.completed_at)),
+        if(is_nil(value.completed_at), do: nil, else: Inttegro.Codec.encode(value.completed_at)),
       "created_at" => Inttegro.Codec.encode(value.created_at),
       "id" => Inttegro.Codec.encode(value.id),
       "payout" => if(is_nil(value.payout), do: nil, else: Inttegro.Codec.encode(value.payout)),
@@ -149,8 +149,8 @@ defmodule Inttegro.BalanceTransactions.BalanceTransaction do
   @moduledoc Inttegro.Docs.module_doc(__MODULE__, :domain)
   @enforce_keys [:amount, :created_at, :id, :order_id, :type]
   defstruct amount: nil,
-	    allocations: nil,
-	    available_amount: nil,
+            allocations: nil,
+            available_amount: nil,
             available_at: nil,
             claimed_at: nil,
             created_at: nil,
@@ -160,16 +160,16 @@ defmodule Inttegro.BalanceTransactions.BalanceTransaction do
             payment_id: nil,
             payout_id: nil,
             payout_configuration: nil,
-	    pending_amount: nil,
+            pending_amount: nil,
             refund_id: nil,
-	    spent_amount: nil,
+            spent_amount: nil,
             type: nil
 
   @typedoc Inttegro.Docs.type_doc(__MODULE__, :domain)
   @type t :: %__MODULE__{
           amount: Inttegro.BalanceTransactions.Amount.t(),
-	  allocations: [Inttegro.BalanceTransactions.Allocation.t()] | nil,
-	  available_amount: Inttegro.BalanceTransactions.Amount.t() | nil,
+          allocations: [Inttegro.BalanceTransactions.Allocation.t()] | nil,
+          available_amount: Inttegro.BalanceTransactions.Amount.t() | nil,
           available_at: DateTime.t() | nil,
           claimed_at: DateTime.t() | nil,
           created_at: DateTime.t(),
@@ -179,9 +179,9 @@ defmodule Inttegro.BalanceTransactions.BalanceTransaction do
           payment_id: String.t() | nil,
           payout_id: String.t() | nil,
           payout_configuration: Inttegro.Payments.PayoutConfiguration.t() | nil,
-	  pending_amount: Inttegro.BalanceTransactions.Amount.t() | nil,
+          pending_amount: Inttegro.BalanceTransactions.Amount.t() | nil,
           refund_id: String.t() | nil,
-	  spent_amount: Inttegro.BalanceTransactions.Amount.t() | nil,
+          spent_amount: Inttegro.BalanceTransactions.Amount.t() | nil,
           type: Inttegro.BalanceTransactions.Type.t()
         }
   @doc Inttegro.Docs.constructor_doc(__MODULE__)
@@ -193,18 +193,18 @@ defmodule Inttegro.BalanceTransactions.BalanceTransaction do
     %__MODULE__{
       amount: Inttegro.BalanceTransactions.Amount.from_map(Map.fetch!(map, "amount")),
       allocations:
-	if(is_nil(Map.get(map, "allocations")),
-	  do: nil,
-	  else:
-	    Enum.map(Map.get(map, "allocations"), fn item ->
-	      Inttegro.BalanceTransactions.Allocation.from_map(item)
-	    end)
-	),
+        if(is_nil(Map.get(map, "allocations")),
+          do: nil,
+          else:
+            Enum.map(Map.get(map, "allocations"), fn item ->
+              Inttegro.BalanceTransactions.Allocation.from_map(item)
+            end)
+        ),
       available_amount:
-	if(is_nil(Map.get(map, "available_amount")),
-	  do: nil,
-	  else: Inttegro.BalanceTransactions.Amount.from_map(Map.get(map, "available_amount"))
-	),
+        if(is_nil(Map.get(map, "available_amount")),
+          do: nil,
+          else: Inttegro.BalanceTransactions.Amount.from_map(Map.get(map, "available_amount"))
+        ),
       available_at:
         if(is_nil(Inttegro.Codec.decode_timestamp(Map.get(map, "available_at"))),
           do: nil,
@@ -233,16 +233,16 @@ defmodule Inttegro.BalanceTransactions.BalanceTransaction do
             Inttegro.Payments.PayoutConfiguration.from_map(Map.get(map, "payout_configuration"))
         ),
       pending_amount:
-	if(is_nil(Map.get(map, "pending_amount")),
-	  do: nil,
-	  else: Inttegro.BalanceTransactions.Amount.from_map(Map.get(map, "pending_amount"))
-	),
+        if(is_nil(Map.get(map, "pending_amount")),
+          do: nil,
+          else: Inttegro.BalanceTransactions.Amount.from_map(Map.get(map, "pending_amount"))
+        ),
       refund_id: if(is_nil(Map.get(map, "refund_id")), do: nil, else: Map.get(map, "refund_id")),
       spent_amount:
-	if(is_nil(Map.get(map, "spent_amount")),
-	  do: nil,
-	  else: Inttegro.BalanceTransactions.Amount.from_map(Map.get(map, "spent_amount"))
-	),
+        if(is_nil(Map.get(map, "spent_amount")),
+          do: nil,
+          else: Inttegro.BalanceTransactions.Amount.from_map(Map.get(map, "spent_amount"))
+        ),
       type: Inttegro.BalanceTransactions.Type.decode(Map.fetch!(map, "type"))
     }
   end
@@ -253,15 +253,15 @@ defmodule Inttegro.BalanceTransactions.BalanceTransaction do
     %{
       "amount" => Inttegro.Codec.encode(value.amount),
       "allocations" =>
-	if(is_nil(value.allocations),
-	  do: nil,
-	  else: Enum.map(value.allocations, fn item -> Inttegro.Codec.encode(item) end)
-	),
+        if(is_nil(value.allocations),
+          do: nil,
+          else: Enum.map(value.allocations, fn item -> Inttegro.Codec.encode(item) end)
+        ),
       "available_amount" =>
-	if(is_nil(value.available_amount),
-	  do: nil,
-	  else: Inttegro.Codec.encode(value.available_amount)
-	),
+        if(is_nil(value.available_amount),
+          do: nil,
+          else: Inttegro.Codec.encode(value.available_amount)
+        ),
       "available_at" =>
         if(is_nil(value.available_at), do: nil, else: Inttegro.Codec.encode(value.available_at)),
       "claimed_at" =>
@@ -280,17 +280,17 @@ defmodule Inttegro.BalanceTransactions.BalanceTransaction do
           else: Inttegro.Codec.encode(value.payout_configuration)
         ),
       "pending_amount" =>
-	if(is_nil(value.pending_amount),
-	  do: nil,
-	  else: Inttegro.Codec.encode(value.pending_amount)
-	),
+        if(is_nil(value.pending_amount),
+          do: nil,
+          else: Inttegro.Codec.encode(value.pending_amount)
+        ),
       "refund_id" =>
         if(is_nil(value.refund_id), do: nil, else: Inttegro.Codec.encode(value.refund_id)),
       "spent_amount" =>
-	if(is_nil(value.spent_amount),
-	  do: nil,
-	  else: Inttegro.Codec.encode(value.spent_amount)
-	),
+        if(is_nil(value.spent_amount),
+          do: nil,
+          else: Inttegro.Codec.encode(value.spent_amount)
+        ),
       "type" => Inttegro.BalanceTransactions.Type.encode(value.type)
     }
     |> Enum.reject(fn {_key, item} -> is_nil(item) end)

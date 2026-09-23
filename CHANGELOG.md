@@ -1,5 +1,13 @@
 # Changelog
 
+## 0.7.0
+
+- Breaking: replaced payout `balance_transactions` ID strings with typed
+  contribution structs containing the source transaction's original amount and
+  the exact amount allocated to the payout.
+- Added complete payment balance-transaction allocation history together with
+  available, pending, and spent amount partitions.
+
 ## 0.6.0
 
 - Added typed search across customers, financial accounts, orders, payouts, and
