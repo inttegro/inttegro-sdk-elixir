@@ -87,12 +87,13 @@ end
 
 defmodule Inttegro.Customers.Customer do
   @moduledoc Inttegro.Docs.module_doc(__MODULE__, :domain)
-  @enforce_keys [:balance, :created_at, :guest, :id, :name]
+  @enforce_keys [:balance, :created_at, :fingerprint, :guest, :id, :name]
   defstruct balance: nil,
             billing_address: nil,
             created_at: nil,
             custom_data: nil,
             email_address: nil,
+            fingerprint: nil,
             guest: nil,
             id: nil,
             name: nil,
@@ -110,6 +111,7 @@ defmodule Inttegro.Customers.Customer do
           created_at: DateTime.t(),
           custom_data: Inttegro.CustomData.t() | nil,
           email_address: String.t() | nil,
+          fingerprint: String.t(),
           guest: boolean(),
           id: String.t(),
           name: String.t(),
@@ -144,6 +146,7 @@ defmodule Inttegro.Customers.Customer do
         ),
       email_address:
         if(is_nil(Map.get(map, "email_address")), do: nil, else: Map.get(map, "email_address")),
+      fingerprint: Map.fetch!(map, "fingerprint"),
       guest: Map.fetch!(map, "guest"),
       id: Map.fetch!(map, "id"),
       name: Map.fetch!(map, "name"),
@@ -183,6 +186,7 @@ defmodule Inttegro.Customers.Customer do
         if(is_nil(value.custom_data), do: nil, else: Inttegro.Codec.encode(value.custom_data)),
       "email_address" =>
         if(is_nil(value.email_address), do: nil, else: Inttegro.Codec.encode(value.email_address)),
+      "fingerprint" => Inttegro.Codec.encode(value.fingerprint),
       "guest" => Inttegro.Codec.encode(value.guest),
       "id" => Inttegro.Codec.encode(value.id),
       "name" => Inttegro.Codec.encode(value.name),

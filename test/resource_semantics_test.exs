@@ -28,6 +28,22 @@ defmodule Inttegro.ResourceSemanticsTest do
     assert Inttegro.Orders.required_payment_action(order).type == :redirect
   end
 
+  test "customer fingerprint is required and round trips" do
+    base = %{
+      "balance" => %{},
+      "created_at" => "2026-09-16T00:00:00Z",
+      "fingerprint" => "cfp_v1_app_buyer",
+      "guest" => false,
+      "id" => "cu_123",
+      "name" => "Ama"
+    }
+
+    customer = Inttegro.Customers.Customer.from_map(base)
+
+    assert customer.fingerprint == "cfp_v1_app_buyer"
+    assert Inttegro.Customers.Customer.to_map(customer)["fingerprint"] == "cfp_v1_app_buyer"
+  end
+
   test "catalog and payment methods answer protocol questions" do
     intent =
       Inttegro.PurchaseIntents.PurchaseIntent.new!(
@@ -102,6 +118,7 @@ defmodule Inttegro.ResourceSemanticsTest do
         "balance" => %{},
         "created_at" => "2026-09-16T00:00:00Z",
         "custom_data" => %{"segment" => "enterprise"},
+        "fingerprint" => "cfp_v1_app_buyer",
         "guest" => false,
         "id" => "cu_123",
         "name" => "Ama"
