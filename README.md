@@ -1,6 +1,7 @@
 # Inttegro Elixir SDK
 
-The official typed Elixir client for server-side Inttegro integrations.
+Accept GHS payments and manage Ghana Mobile Money checkout, orders, refunds,
+and payouts with Inttegro's typed server-side Elixir SDK.
 
 [API documentation](https://hexdocs.pm/inttegro/) · [Integration guides](https://studio.inttegro.com/sdks/elixir) · [Source](https://github.com/inttegro/inttegro-sdk-elixir)
 
@@ -11,7 +12,7 @@ Add `inttegro` to your dependencies:
 ```elixir
 def deps do
   [
-    {:inttegro, "~> 0.2"}
+    {:inttegro, "~> 0.8"}
   ]
 end
 ```

@@ -1,7 +1,7 @@
 defmodule Inttegro.MixProject do
   use Mix.Project
 
-  @version "0.8.0"
+  @version "0.8.1"
 
   def project do
     [
@@ -9,7 +9,7 @@ defmodule Inttegro.MixProject do
       version: @version,
       elixir: "~> 1.15",
       start_permanent: Mix.env() == :prod,
-      description: "Official typed server-side Elixir SDK for Inttegro",
+      description: "Typed Elixir SDK for Inttegro GHS checkout and Ghana Mobile Money payments",
       source_url: "https://github.com/inttegro/inttegro-sdk-elixir",
       homepage_url: "https://studio.inttegro.com/sdks/elixir",
       package: package(),
