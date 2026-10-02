@@ -59,6 +59,7 @@ defmodule Inttegro.FinancialAccounts.FinancialAccount do
             currency: nil,
             custom_data: nil,
             description: nil,
+            fingerprint: nil,
             id: nil,
             institution: nil,
             label: nil,
@@ -81,6 +82,7 @@ defmodule Inttegro.FinancialAccounts.FinancialAccount do
           currency: String.t(),
           custom_data: Inttegro.CustomData.t() | nil,
           description: String.t() | nil,
+          fingerprint: String.t() | nil,
           id: String.t(),
           institution: Inttegro.FinancialAccounts.FinancialInstitution.t() | nil,
           label: String.t() | nil,
@@ -117,6 +119,8 @@ defmodule Inttegro.FinancialAccounts.FinancialAccount do
         ),
       description:
         if(is_nil(Map.get(map, "description")), do: nil, else: Map.get(map, "description")),
+      fingerprint:
+        if(is_nil(Map.get(map, "fingerprint")), do: nil, else: Map.get(map, "fingerprint")),
       id: Map.fetch!(map, "id"),
       institution:
         if(is_nil(Map.get(map, "institution")),
@@ -193,6 +197,8 @@ defmodule Inttegro.FinancialAccounts.FinancialAccount do
         if(is_nil(value.custom_data), do: nil, else: Inttegro.Codec.encode(value.custom_data)),
       "description" =>
         if(is_nil(value.description), do: nil, else: Inttegro.Codec.encode(value.description)),
+      "fingerprint" =>
+        if(is_nil(value.fingerprint), do: nil, else: Inttegro.Codec.encode(value.fingerprint)),
       "id" => Inttegro.Codec.encode(value.id),
       "institution" =>
         if(is_nil(value.institution), do: nil, else: Inttegro.Codec.encode(value.institution)),
