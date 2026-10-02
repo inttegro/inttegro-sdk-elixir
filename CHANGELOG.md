@@ -4,6 +4,8 @@
 
 - Clarified the package's GHS checkout and Ghana Mobile Money use cases in its
   searchable Hex metadata and quickstart.
+- Updated the locked HTTP transport to Mint 1.11.0, which clears the current
+  Hex security advisories for the previous transport release.
 
 ## 0.8.0
 
