@@ -1,5 +1,10 @@
 # Changelog
 
+## 0.8.1
+
+- Clarified the package's GHS checkout and Ghana Mobile Money use cases in its
+  searchable Hex metadata and quickstart.
+
 ## 0.8.0
 
 - Added the required application-scoped customer fingerprint to typed customer
