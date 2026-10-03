@@ -1,5 +1,12 @@
 # Changelog
 
+## 0.9.0
+
+- Added typed hosted Buy-page text overrides to Purchase Intent create,
+  update, and response models, including explicit default restoration.
+- Added the application-scoped financial-account fingerprint to typed
+  responses.
+
 ## 0.8.2
 
 - Restored the broad Inttegro API description while retaining searchable Hex

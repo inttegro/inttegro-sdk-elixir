@@ -64,6 +64,234 @@ defmodule Inttegro.PurchaseIntents.CancelRequest do
   end
 end
 
+defmodule Inttegro.PurchaseIntents.BuyPageText do
+  @moduledoc """
+  Merchant-authored copy shown on a hosted Buy page.
+
+  Every field is optional. An omitted field keeps Inttegro's product-aware
+  wording for the amount input, checkout section, or ready-state action.
+  """
+  defstruct checkout_section_title: nil, amount_field_label: nil, primary_action_label: nil
+
+  @type t :: %__MODULE__{
+          checkout_section_title: String.t() | nil,
+          amount_field_label: String.t() | nil,
+          primary_action_label: String.t() | nil
+        }
+
+  @spec new!(map() | keyword()) :: t()
+  def new!(attrs \\ %{}), do: struct!(__MODULE__, attrs)
+
+  @doc false
+  @spec from_map(map()) :: t()
+  def from_map(map) when is_map(map) do
+    %__MODULE__{
+      checkout_section_title: Map.get(map, "checkout_section_title"),
+      amount_field_label: Map.get(map, "amount_field_label"),
+      primary_action_label: Map.get(map, "primary_action_label")
+    }
+  end
+
+  @doc false
+  @spec to_map(t()) :: map()
+  def to_map(value) do
+    %{
+      "checkout_section_title" => value.checkout_section_title,
+      "amount_field_label" => value.amount_field_label,
+      "primary_action_label" => value.primary_action_label
+    }
+    |> Enum.reject(fn {_key, item} -> is_nil(item) end)
+    |> Map.new()
+  end
+end
+
+defmodule Inttegro.PurchaseIntents.BuyPagePresentation do
+  @moduledoc """
+  Groups the text shown on the hosted Buy page for a Purchase Intent.
+
+  Use `text` to override only the customer-facing labels that need different
+  wording while Inttegro continues to own validation and loading messages.
+  """
+  @enforce_keys [:text]
+  defstruct text: nil
+
+  @type t :: %__MODULE__{text: Inttegro.PurchaseIntents.BuyPageText.t()}
+
+  @spec new!(map() | keyword()) :: t()
+  def new!(attrs \\ %{}), do: struct!(__MODULE__, attrs)
+
+  @doc false
+  @spec from_map(map()) :: t()
+  def from_map(map) when is_map(map) do
+    %__MODULE__{text: Inttegro.PurchaseIntents.BuyPageText.from_map(Map.fetch!(map, "text"))}
+  end
+
+  @doc false
+  @spec to_map(t()) :: map()
+  def to_map(value), do: %{"text" => Inttegro.PurchaseIntents.BuyPageText.to_map(value.text)}
+end
+
+defmodule Inttegro.PurchaseIntents.Presentation do
+  @moduledoc """
+  Customer-facing presentation settings returned with a Purchase Intent.
+
+  The nested `buy_page` value contains the merchant-authored overrides that
+  Inttegro applies when the public Buy page renders the offer.
+  """
+  @enforce_keys [:buy_page]
+  defstruct buy_page: nil
+
+  @type t :: %__MODULE__{buy_page: Inttegro.PurchaseIntents.BuyPagePresentation.t()}
+
+  @spec new!(map() | keyword()) :: t()
+  def new!(attrs \\ %{}), do: struct!(__MODULE__, attrs)
+
+  @doc false
+  @spec from_map(map()) :: t()
+  def from_map(map) when is_map(map) do
+    %__MODULE__{
+      buy_page: Inttegro.PurchaseIntents.BuyPagePresentation.from_map(Map.fetch!(map, "buy_page"))
+    }
+  end
+
+  @doc false
+  @spec to_map(t()) :: map()
+  def to_map(value) do
+    %{"buy_page" => Inttegro.PurchaseIntents.BuyPagePresentation.to_map(value.buy_page)}
+  end
+end
+
+defmodule Inttegro.PurchaseIntents.TextValueUpdate do
+  @moduledoc """
+  Represents one sparse hosted Buy-page text update.
+
+  Use `set/1` to replace a label and `clear/0` to send an explicit `null`, which
+  removes the override and restores Inttegro's product-aware default.
+  """
+  @enforce_keys [:value]
+  defstruct value: nil
+
+  @type t :: %__MODULE__{value: String.t() | nil}
+
+  @spec set(String.t()) :: t()
+  def set(value) when is_binary(value), do: %__MODULE__{value: value}
+
+  @spec clear() :: t()
+  def clear, do: %__MODULE__{value: nil}
+end
+
+defmodule Inttegro.PurchaseIntents.UpdateBuyPageText do
+  @moduledoc """
+  Applies sparse merchant-authored copy changes to a hosted Buy page.
+
+  Omitted fields stay unchanged. A `TextValueUpdate` can either replace one
+  label or explicitly remove its override so the default is used again.
+  """
+  defstruct checkout_section_title: nil, amount_field_label: nil, primary_action_label: nil
+
+  @type t :: %__MODULE__{
+          checkout_section_title: Inttegro.PurchaseIntents.TextValueUpdate.t() | nil,
+          amount_field_label: Inttegro.PurchaseIntents.TextValueUpdate.t() | nil,
+          primary_action_label: Inttegro.PurchaseIntents.TextValueUpdate.t() | nil
+        }
+
+  @spec new!(map() | keyword()) :: t()
+  def new!(attrs \\ %{}), do: struct!(__MODULE__, attrs)
+
+  @doc false
+  @spec from_map(map()) :: t()
+  def from_map(map) when is_map(map) do
+    %__MODULE__{
+      checkout_section_title: from_entry(map, "checkout_section_title"),
+      amount_field_label: from_entry(map, "amount_field_label"),
+      primary_action_label: from_entry(map, "primary_action_label")
+    }
+  end
+
+  @doc false
+  @spec to_map(t()) :: map()
+  def to_map(value) do
+    %{}
+    |> put_update("checkout_section_title", value.checkout_section_title)
+    |> put_update("amount_field_label", value.amount_field_label)
+    |> put_update("primary_action_label", value.primary_action_label)
+  end
+
+  defp from_entry(map, key) do
+    case Map.fetch(map, key) do
+      {:ok, value} -> %Inttegro.PurchaseIntents.TextValueUpdate{value: value}
+      :error -> nil
+    end
+  end
+
+  defp put_update(map, _key, nil), do: map
+
+  defp put_update(map, key, %Inttegro.PurchaseIntents.TextValueUpdate{value: value}),
+    do: Map.put(map, key, value)
+end
+
+defmodule Inttegro.PurchaseIntents.UpdateBuyPagePresentation do
+  @moduledoc """
+  Groups a hosted Buy-page presentation update for a Purchase Intent.
+
+  Its `text` value carries the sparse label changes; labels that are not
+  represented in that value retain their current overrides.
+  """
+  @enforce_keys [:text]
+  defstruct text: nil
+
+  @type t :: %__MODULE__{text: Inttegro.PurchaseIntents.UpdateBuyPageText.t()}
+
+  @spec new!(map() | keyword()) :: t()
+  def new!(attrs \\ %{}), do: struct!(__MODULE__, attrs)
+
+  @doc false
+  @spec from_map(map()) :: t()
+  def from_map(map) when is_map(map) do
+    %__MODULE__{
+      text: Inttegro.PurchaseIntents.UpdateBuyPageText.from_map(Map.fetch!(map, "text"))
+    }
+  end
+
+  @doc false
+  @spec to_map(t()) :: map()
+  def to_map(value),
+    do: %{"text" => Inttegro.PurchaseIntents.UpdateBuyPageText.to_map(value.text)}
+end
+
+defmodule Inttegro.PurchaseIntents.UpdatePresentation do
+  @moduledoc """
+  Customer-facing presentation changes for an existing Purchase Intent.
+
+  Supply `buy_page` when changing hosted-page copy. The update does not alter
+  the offer's product, price, visual theme, or system-owned status messages.
+  """
+  @enforce_keys [:buy_page]
+  defstruct buy_page: nil
+
+  @type t :: %__MODULE__{buy_page: Inttegro.PurchaseIntents.UpdateBuyPagePresentation.t()}
+
+  @spec new!(map() | keyword()) :: t()
+  def new!(attrs \\ %{}), do: struct!(__MODULE__, attrs)
+
+  @doc false
+  @spec from_map(map()) :: t()
+  def from_map(map) when is_map(map) do
+    %__MODULE__{
+      buy_page:
+        Inttegro.PurchaseIntents.UpdateBuyPagePresentation.from_map(Map.fetch!(map, "buy_page"))
+    }
+  end
+
+  @doc false
+  @spec to_map(t()) :: map()
+  def to_map(value) do
+    %{
+      "buy_page" => Inttegro.PurchaseIntents.UpdateBuyPagePresentation.to_map(value.buy_page)
+    }
+  end
+end
+
 defmodule Inttegro.PurchaseIntents.CreateRequest do
   @moduledoc Inttegro.Docs.module_doc(__MODULE__, :request)
   @enforce_keys [:quantity]
@@ -73,6 +301,7 @@ defmodule Inttegro.PurchaseIntents.CreateRequest do
             price_id: nil,
             usage: nil,
             expires_at: nil,
+            presentation: nil,
             quantity: nil
 
   @typedoc Inttegro.Docs.type_doc(__MODULE__, :request)
@@ -83,6 +312,7 @@ defmodule Inttegro.PurchaseIntents.CreateRequest do
           price_id: String.t() | nil,
           usage: Inttegro.PurchaseIntents.CreateRequestUsage.t() | nil,
           expires_at: DateTime.t() | nil,
+          presentation: Inttegro.PurchaseIntents.Presentation.t() | nil,
           quantity: Inttegro.PurchaseIntents.CreateRequestQuantity.t()
         }
   @doc Inttegro.Docs.constructor_doc(__MODULE__)
@@ -115,6 +345,11 @@ defmodule Inttegro.PurchaseIntents.CreateRequest do
           do: nil,
           else: Inttegro.Codec.decode_timestamp(Map.get(map, "expires_at"))
         ),
+      presentation:
+        if(is_nil(Map.get(map, "presentation")),
+          do: nil,
+          else: Inttegro.PurchaseIntents.Presentation.from_map(Map.get(map, "presentation"))
+        ),
       quantity:
         Inttegro.PurchaseIntents.CreateRequestQuantity.from_map(Map.fetch!(map, "quantity"))
     }
@@ -133,6 +368,8 @@ defmodule Inttegro.PurchaseIntents.CreateRequest do
       "usage" => if(is_nil(value.usage), do: nil, else: Inttegro.Codec.encode(value.usage)),
       "expires_at" =>
         if(is_nil(value.expires_at), do: nil, else: Inttegro.Codec.encode(value.expires_at)),
+      "presentation" =>
+        if(is_nil(value.presentation), do: nil, else: Inttegro.Codec.encode(value.presentation)),
       "quantity" => Inttegro.Codec.encode(value.quantity)
     }
     |> Enum.reject(fn {_key, item} -> is_nil(item) end)
@@ -412,6 +649,7 @@ defmodule Inttegro.PurchaseIntents.PurchaseIntent do
             inactive_at: nil,
             merchant: nil,
             price: nil,
+            presentation: nil,
             product: nil,
             quantity: nil,
             status: nil,
@@ -428,6 +666,7 @@ defmodule Inttegro.PurchaseIntents.PurchaseIntent do
           inactive_at: DateTime.t() | nil,
           merchant: Inttegro.PurchaseIntents.Merchant.t() | nil,
           price: Inttegro.PurchaseIntents.Price.t() | nil,
+          presentation: Inttegro.PurchaseIntents.Presentation.t() | nil,
           product: Inttegro.PurchaseIntents.Product.t() | nil,
           quantity: Inttegro.PurchaseIntents.Quantity.t(),
           status: Inttegro.PurchaseIntents.Status.t(),
@@ -465,6 +704,11 @@ defmodule Inttegro.PurchaseIntents.PurchaseIntent do
           do: nil,
           else: Inttegro.PurchaseIntents.Price.from_map(Map.get(map, "price"))
         ),
+      presentation:
+        if(is_nil(Map.get(map, "presentation")),
+          do: nil,
+          else: Inttegro.PurchaseIntents.Presentation.from_map(Map.get(map, "presentation"))
+        ),
       product:
         if(is_nil(Map.get(map, "product")),
           do: nil,
@@ -500,6 +744,8 @@ defmodule Inttegro.PurchaseIntents.PurchaseIntent do
       "merchant" =>
         if(is_nil(value.merchant), do: nil, else: Inttegro.Codec.encode(value.merchant)),
       "price" => if(is_nil(value.price), do: nil, else: Inttegro.Codec.encode(value.price)),
+      "presentation" =>
+        if(is_nil(value.presentation), do: nil, else: Inttegro.Codec.encode(value.presentation)),
       "product" => if(is_nil(value.product), do: nil, else: Inttegro.Codec.encode(value.product)),
       "quantity" => Inttegro.Codec.encode(value.quantity),
       "status" => Inttegro.PurchaseIntents.Status.encode(value.status),
@@ -1198,7 +1444,12 @@ end
 
 defmodule Inttegro.PurchaseIntents.UpdateRequest do
   @moduledoc Inttegro.Docs.module_doc(__MODULE__, :request)
-  defstruct expires_at: nil, id: nil, quantity: nil, purchase_intent_id: nil, reactivate: nil
+  defstruct expires_at: nil,
+            id: nil,
+            quantity: nil,
+            purchase_intent_id: nil,
+            reactivate: nil,
+            presentation: nil
 
   @typedoc Inttegro.Docs.type_doc(__MODULE__, :request)
   @type t :: %__MODULE__{
@@ -1206,7 +1457,8 @@ defmodule Inttegro.PurchaseIntents.UpdateRequest do
           id: String.t() | nil,
           quantity: Inttegro.PurchaseIntents.UpdateRequestQuantity.t() | nil,
           purchase_intent_id: String.t() | nil,
-          reactivate: boolean() | nil
+          reactivate: boolean() | nil,
+          presentation: Inttegro.PurchaseIntents.UpdatePresentation.t() | nil
         }
   @doc Inttegro.Docs.constructor_doc(__MODULE__)
   @spec new!(map() | keyword()) :: t()
@@ -1232,7 +1484,12 @@ defmodule Inttegro.PurchaseIntents.UpdateRequest do
           else: Map.get(map, "purchase_intent_id")
         ),
       reactivate:
-        if(is_nil(Map.get(map, "reactivate")), do: nil, else: Map.get(map, "reactivate"))
+        if(is_nil(Map.get(map, "reactivate")), do: nil, else: Map.get(map, "reactivate")),
+      presentation:
+        if(is_nil(Map.get(map, "presentation")),
+          do: nil,
+          else: Inttegro.PurchaseIntents.UpdatePresentation.from_map(Map.get(map, "presentation"))
+        )
     }
   end
 
@@ -1251,7 +1508,9 @@ defmodule Inttegro.PurchaseIntents.UpdateRequest do
           else: Inttegro.Codec.encode(value.purchase_intent_id)
         ),
       "reactivate" =>
-        if(is_nil(value.reactivate), do: nil, else: Inttegro.Codec.encode(value.reactivate))
+        if(is_nil(value.reactivate), do: nil, else: Inttegro.Codec.encode(value.reactivate)),
+      "presentation" =>
+        if(is_nil(value.presentation), do: nil, else: Inttegro.Codec.encode(value.presentation))
     }
     |> Enum.reject(fn {_key, item} -> is_nil(item) end)
     |> Map.new()

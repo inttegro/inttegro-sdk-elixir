@@ -188,6 +188,11 @@ defmodule Inttegro.PublicAPITest do
         "created_at" => "2026-09-09T12:00:00Z",
         "id" => "sale_123",
         "merchant" => %{"organization_name" => "Tea House Ltd"},
+        "presentation" => %{
+          "buy_page" => %{
+            "text" => %{"checkout_section_title" => "Support this cause"}
+          }
+        },
         "product" => %{
           "active" => true,
           "created_at" => "2026-09-09T11:00:00Z",
@@ -207,7 +212,59 @@ defmodule Inttegro.PublicAPITest do
     assert intent.merchant.organization_name == "Tea House Ltd"
     assert intent.product.dimensions.digital.bytes == 1_024
     assert intent.usage.order.id == "or_123"
+    assert intent.presentation.buy_page.text.checkout_section_title == "Support this cause"
     assert %DateTime{} = intent.created_at
+
+    request =
+      Inttegro.PurchaseIntents.CreateRequest.new!(
+        quantity: Inttegro.PurchaseIntents.CreateRequestQuantity.new!(min: 1),
+        presentation:
+          Inttegro.PurchaseIntents.Presentation.new!(
+            buy_page:
+              Inttegro.PurchaseIntents.BuyPagePresentation.new!(
+                text:
+                  Inttegro.PurchaseIntents.BuyPageText.new!(
+                    amount_field_label: "Your contribution"
+                  )
+              )
+          )
+      )
+
+    assert get_in(Inttegro.PurchaseIntents.CreateRequest.to_map(request), [
+             "presentation",
+             "buy_page",
+             "text",
+             "amount_field_label"
+           ]) == "Your contribution"
+
+    update =
+      Inttegro.PurchaseIntents.UpdateRequest.new!(
+        id: "sale_123",
+        presentation:
+          Inttegro.PurchaseIntents.UpdatePresentation.new!(
+            buy_page:
+              Inttegro.PurchaseIntents.UpdateBuyPagePresentation.new!(
+                text:
+                  Inttegro.PurchaseIntents.UpdateBuyPageText.new!(
+                    checkout_section_title:
+                      Inttegro.PurchaseIntents.TextValueUpdate.set("Contribute now"),
+                    amount_field_label: Inttegro.PurchaseIntents.TextValueUpdate.clear()
+                  )
+              )
+          )
+      )
+
+    update_text =
+      get_in(Inttegro.PurchaseIntents.UpdateRequest.to_map(update), [
+        "presentation",
+        "buy_page",
+        "text"
+      ])
+
+    assert update_text["checkout_section_title"] == "Contribute now"
+    assert Map.has_key?(update_text, "amount_field_label")
+    assert is_nil(update_text["amount_field_label"])
+    refute Map.has_key?(update_text, "primary_action_label")
   end
 
   test "payout settings expose known destinations statically" do
