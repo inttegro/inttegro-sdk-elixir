@@ -11,7 +11,7 @@ Add `inttegro` to your dependencies:
 ```elixir
 def deps do
   [
-    {:inttegro, "~> 0.2"}
+    {:inttegro, "~> 0.8"}
   ]
 end
 ```

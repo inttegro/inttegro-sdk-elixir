@@ -1,5 +1,17 @@
 # Changelog
 
+## 0.8.2
+
+- Restored the broad Inttegro API description while retaining searchable Hex
+  metadata.
+
+## 0.8.1
+
+- Clarified the package's GHS checkout and Ghana Mobile Money use cases in its
+  searchable Hex metadata and quickstart.
+- Updated the locked HTTP transport to Mint 1.11.0, which clears the current
+  Hex security advisories for the previous transport release.
+
 ## 0.8.0
 
 - Added the required application-scoped customer fingerprint to typed customer
