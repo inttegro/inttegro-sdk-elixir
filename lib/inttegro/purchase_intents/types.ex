@@ -65,7 +65,12 @@ defmodule Inttegro.PurchaseIntents.CancelRequest do
 end
 
 defmodule Inttegro.PurchaseIntents.BuyPageText do
-  @moduledoc "Merchant-authored copy shown on a hosted Buy page."
+  @moduledoc """
+  Merchant-authored copy shown on a hosted Buy page.
+
+  Every field is optional. An omitted field keeps Inttegro's product-aware
+  wording for the amount input, checkout section, or ready-state action.
+  """
   defstruct checkout_section_title: nil, amount_field_label: nil, primary_action_label: nil
 
   @type t :: %__MODULE__{
@@ -101,7 +106,12 @@ defmodule Inttegro.PurchaseIntents.BuyPageText do
 end
 
 defmodule Inttegro.PurchaseIntents.BuyPagePresentation do
-  @moduledoc "Presentation settings for the hosted Buy page."
+  @moduledoc """
+  Groups the text shown on the hosted Buy page for a Purchase Intent.
+
+  Use `text` to override only the customer-facing labels that need different
+  wording while Inttegro continues to own validation and loading messages.
+  """
   @enforce_keys [:text]
   defstruct text: nil
 
@@ -122,7 +132,12 @@ defmodule Inttegro.PurchaseIntents.BuyPagePresentation do
 end
 
 defmodule Inttegro.PurchaseIntents.Presentation do
-  @moduledoc "Customer-facing presentation settings for a purchase intent."
+  @moduledoc """
+  Customer-facing presentation settings returned with a Purchase Intent.
+
+  The nested `buy_page` value contains the merchant-authored overrides that
+  Inttegro applies when the public Buy page renders the offer.
+  """
   @enforce_keys [:buy_page]
   defstruct buy_page: nil
 
@@ -147,7 +162,12 @@ defmodule Inttegro.PurchaseIntents.Presentation do
 end
 
 defmodule Inttegro.PurchaseIntents.TextValueUpdate do
-  @moduledoc "A hosted Buy page text replacement or explicit default restoration."
+  @moduledoc """
+  Represents one sparse hosted Buy-page text update.
+
+  Use `set/1` to replace a label and `clear/0` to send an explicit `null`, which
+  removes the override and restores Inttegro's product-aware default.
+  """
   @enforce_keys [:value]
   defstruct value: nil
 
@@ -161,7 +181,12 @@ defmodule Inttegro.PurchaseIntents.TextValueUpdate do
 end
 
 defmodule Inttegro.PurchaseIntents.UpdateBuyPageText do
-  @moduledoc "Sparse merchant-authored copy update for a hosted Buy page."
+  @moduledoc """
+  Applies sparse merchant-authored copy changes to a hosted Buy page.
+
+  Omitted fields stay unchanged. A `TextValueUpdate` can either replace one
+  label or explicitly remove its override so the default is used again.
+  """
   defstruct checkout_section_title: nil, amount_field_label: nil, primary_action_label: nil
 
   @type t :: %__MODULE__{
@@ -206,7 +231,12 @@ defmodule Inttegro.PurchaseIntents.UpdateBuyPageText do
 end
 
 defmodule Inttegro.PurchaseIntents.UpdateBuyPagePresentation do
-  @moduledoc "Hosted Buy page presentation update for a purchase intent."
+  @moduledoc """
+  Groups a hosted Buy-page presentation update for a Purchase Intent.
+
+  Its `text` value carries the sparse label changes; labels that are not
+  represented in that value retain their current overrides.
+  """
   @enforce_keys [:text]
   defstruct text: nil
 
@@ -230,7 +260,12 @@ defmodule Inttegro.PurchaseIntents.UpdateBuyPagePresentation do
 end
 
 defmodule Inttegro.PurchaseIntents.UpdatePresentation do
-  @moduledoc "Customer-facing presentation update for a purchase intent."
+  @moduledoc """
+  Customer-facing presentation changes for an existing Purchase Intent.
+
+  Supply `buy_page` when changing hosted-page copy. The update does not alter
+  the offer's product, price, visual theme, or system-owned status messages.
+  """
   @enforce_keys [:buy_page]
   defstruct buy_page: nil
 
