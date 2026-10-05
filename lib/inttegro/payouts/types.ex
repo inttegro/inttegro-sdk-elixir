@@ -9,7 +9,7 @@ defmodule Inttegro.Payouts.Status do
           | :processing
           | :executing
           | :succeeded
-          | :invalid
+          | :failed
           | :canceled
           | String.t()
   @values %{
@@ -18,10 +18,41 @@ defmodule Inttegro.Payouts.Status do
     processing: "processing",
     executing: "executing",
     succeeded: "succeeded",
-    invalid: "invalid",
+    failed: "failed",
     canceled: "canceled"
   }
   @doc Inttegro.Docs.enum_values_doc(__MODULE__)
+  @spec values() :: [t()]
+  def values, do: Map.keys(@values)
+  @doc false
+  @spec encode(t()) :: String.t()
+  def encode(value) when is_atom(value), do: Map.fetch!(@values, value)
+  def encode(value) when is_binary(value), do: value
+  @doc false
+  @spec decode(String.t()) :: t()
+  def decode(value),
+    do: Enum.find_value(@values, value, fn {key, wire} -> if wire == value, do: key end)
+end
+
+defmodule Inttegro.Payouts.FailureReason do
+  @moduledoc """
+  Stable, caller-safe reasons that a payout failed.
+
+  Use these values for branching and reporting instead of parsing the human-readable failure
+  detail returned with the payout.
+  """
+  @type t ::
+          :provider_declined
+          | :delivery_failed
+          | :temporarily_unavailable
+          | :unknown
+          | String.t()
+  @values %{
+    provider_declined: "provider_declined",
+    delivery_failed: "delivery_failed",
+    temporarily_unavailable: "temporarily_unavailable",
+    unknown: "unknown"
+  }
   @spec values() :: [t()]
   def values, do: Map.keys(@values)
   @doc false
@@ -229,6 +260,46 @@ defmodule Inttegro.Payouts.BalanceTransaction do
   end
 end
 
+defmodule Inttegro.Payouts.Failure do
+  @moduledoc """
+  Caller-safe information about a terminal payout failure.
+
+  `reason` is stable for programmatic handling, `detail` is safe for an operator, and
+  `retryable` tells an integration whether creating a new payout attempt may succeed.
+  """
+  @enforce_keys [:detail, :reason, :retryable]
+  defstruct detail: nil, reason: nil, retryable: nil
+
+  @type t :: %__MODULE__{
+          detail: String.t(),
+          reason: Inttegro.Payouts.FailureReason.t(),
+          retryable: boolean()
+        }
+
+  @spec new!(map() | keyword()) :: t()
+  def new!(attrs \\ %{}), do: struct!(__MODULE__, attrs)
+
+  @doc false
+  @spec from_map(map()) :: t()
+  def from_map(map) when is_map(map) do
+    %__MODULE__{
+      detail: Map.fetch!(map, "detail"),
+      reason: Inttegro.Payouts.FailureReason.decode(Map.fetch!(map, "reason")),
+      retryable: Map.fetch!(map, "retryable")
+    }
+  end
+
+  @doc false
+  @spec to_map(t()) :: map()
+  def to_map(value) do
+    %{
+      "detail" => Inttegro.Codec.encode(value.detail),
+      "reason" => Inttegro.Payouts.FailureReason.encode(value.reason),
+      "retryable" => Inttegro.Codec.encode(value.retryable)
+    }
+  end
+end
+
 defmodule Inttegro.Payouts.Payout do
   @moduledoc Inttegro.Docs.module_doc(__MODULE__, :domain)
   @enforce_keys [:destination_id, :execute_after, :id, :initiated_at, :max_amount, :status]
@@ -243,6 +314,7 @@ defmodule Inttegro.Payouts.Payout do
             executed_by: nil,
             expected_at: nil,
             failed_at: nil,
+            failure: nil,
             id: nil,
             initiated_at: nil,
             initiated_by: nil,
@@ -269,6 +341,7 @@ defmodule Inttegro.Payouts.Payout do
           executed_by: String.t() | nil,
           expected_at: DateTime.t() | nil,
           failed_at: DateTime.t() | nil,
+          failure: Inttegro.Payouts.Failure.t() | nil,
           id: String.t(),
           initiated_at: DateTime.t(),
           initiated_by: String.t() | nil,
@@ -332,6 +405,11 @@ defmodule Inttegro.Payouts.Payout do
           do: nil,
           else: Inttegro.Codec.decode_timestamp(Map.get(map, "failed_at"))
         ),
+      failure:
+        if(is_nil(Map.get(map, "failure")),
+          do: nil,
+          else: Inttegro.Payouts.Failure.from_map(Map.get(map, "failure"))
+        ),
       id: Map.fetch!(map, "id"),
       initiated_at: Inttegro.Codec.decode_timestamp(Map.fetch!(map, "initiated_at")),
       initiated_by:
@@ -390,6 +468,7 @@ defmodule Inttegro.Payouts.Payout do
         if(is_nil(value.expected_at), do: nil, else: Inttegro.Codec.encode(value.expected_at)),
       "failed_at" =>
         if(is_nil(value.failed_at), do: nil, else: Inttegro.Codec.encode(value.failed_at)),
+      "failure" => if(is_nil(value.failure), do: nil, else: Inttegro.Codec.encode(value.failure)),
       "id" => Inttegro.Codec.encode(value.id),
       "initiated_at" => Inttegro.Codec.encode(value.initiated_at),
       "initiated_by" =>
