@@ -159,6 +159,7 @@ defmodule Inttegro.Payments.Payment do
             balance_transaction: nil,
             payment_method: nil,
             customer: nil,
+            receipt: nil,
             latest_attempt: nil,
             next_action: nil,
             latest_error: nil,
@@ -183,6 +184,7 @@ defmodule Inttegro.Payments.Payment do
           balance_transaction: Inttegro.BalanceTransactions.BalanceTransaction.t() | nil,
           payment_method: Inttegro.PaymentMethods.Snapshot.t() | nil,
           customer: Inttegro.Orders.Customer.t() | nil,
+          receipt: Inttegro.Invoices.OrderReceipt.t() | nil,
           latest_attempt: Inttegro.Payments.Attempt.t() | nil,
           next_action: Inttegro.Payments.NextAction.t() | nil,
           latest_error: Inttegro.Payments.Error.t() | nil,
@@ -230,6 +232,11 @@ defmodule Inttegro.Payments.Payment do
         if(is_nil(Map.get(map, "customer")),
           do: nil,
           else: Inttegro.Orders.Customer.from_map(Map.get(map, "customer"))
+        ),
+      receipt:
+        if(is_nil(Map.get(map, "receipt")),
+          do: nil,
+          else: Inttegro.Invoices.OrderReceipt.from_map(Map.get(map, "receipt"))
         ),
       latest_attempt:
         if(is_nil(Map.get(map, "latest_attempt")),
@@ -318,6 +325,7 @@ defmodule Inttegro.Payments.Payment do
         ),
       "customer" =>
         if(is_nil(value.customer), do: nil, else: Inttegro.Codec.encode(value.customer)),
+      "receipt" => if(is_nil(value.receipt), do: nil, else: Inttegro.Codec.encode(value.receipt)),
       "latest_attempt" =>
         if(is_nil(value.latest_attempt),
           do: nil,

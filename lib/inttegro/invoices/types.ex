@@ -342,6 +342,67 @@ defmodule Inttegro.Invoices.OrderDocumentFormat do
   end
 end
 
+defmodule Inttegro.Invoices.OrderReceiptFormat do
+  @moduledoc Inttegro.Docs.module_doc(__MODULE__, :domain)
+  @enforce_keys [:web, :pdf]
+  defstruct web: nil, pdf: nil
+
+  @type t :: %__MODULE__{
+          web: Inttegro.Invoices.OrderDocumentFormat.t(),
+          pdf: Inttegro.Invoices.OrderDocumentFormat.t()
+        }
+
+  @spec new!(map() | keyword()) :: t()
+  def new!(attrs \\ %{}), do: struct!(__MODULE__, attrs)
+
+  @spec from_map(map()) :: t()
+  def from_map(map) when is_map(map) do
+    %__MODULE__{
+      web: Inttegro.Invoices.OrderDocumentFormat.from_map(Map.fetch!(map, "web")),
+      pdf: Inttegro.Invoices.OrderDocumentFormat.from_map(Map.fetch!(map, "pdf"))
+    }
+  end
+
+  @spec to_map(t()) :: map()
+  def to_map(value),
+    do: %{"web" => Inttegro.Codec.encode(value.web), "pdf" => Inttegro.Codec.encode(value.pdf)}
+end
+
+defmodule Inttegro.Invoices.OrderReceipt do
+  @moduledoc Inttegro.Docs.module_doc(__MODULE__, :domain)
+  @enforce_keys [:format]
+  defstruct format: nil, number: nil, delivery_summary: nil
+
+  @type t :: %__MODULE__{
+          format: Inttegro.Invoices.OrderReceiptFormat.t(),
+          number: String.t() | nil,
+          delivery_summary: map() | nil
+        }
+
+  @spec new!(map() | keyword()) :: t()
+  def new!(attrs \\ %{}), do: struct!(__MODULE__, attrs)
+
+  @spec from_map(map()) :: t()
+  def from_map(map) when is_map(map) do
+    %__MODULE__{
+      format: Inttegro.Invoices.OrderReceiptFormat.from_map(Map.fetch!(map, "format")),
+      number: Map.get(map, "number"),
+      delivery_summary: Map.get(map, "delivery_summary")
+    }
+  end
+
+  @spec to_map(t()) :: map()
+  def to_map(value) do
+    %{
+      "format" => Inttegro.Codec.encode(value.format),
+      "number" => value.number,
+      "delivery_summary" => value.delivery_summary
+    }
+    |> Enum.reject(fn {_key, item} -> is_nil(item) end)
+    |> Map.new()
+  end
+end
+
 defmodule Inttegro.Invoices.Order do
   @moduledoc Inttegro.Docs.module_doc(__MODULE__, :domain)
   @enforce_keys [:format]
@@ -379,13 +440,12 @@ end
 defmodule Inttegro.Invoices.OrderFormat do
   @moduledoc Inttegro.Docs.module_doc(__MODULE__, :domain)
   @enforce_keys [:web, :pdf]
-  defstruct web: nil, pdf: nil, receipt: nil
+  defstruct web: nil, pdf: nil
 
   @typedoc Inttegro.Docs.type_doc(__MODULE__, :domain)
   @type t :: %__MODULE__{
           web: Inttegro.Invoices.OrderDocumentFormat.t(),
-          pdf: Inttegro.Invoices.OrderDocumentFormat.t(),
-          receipt: Inttegro.Invoices.OrderDocumentFormat.t() | nil
+          pdf: Inttegro.Invoices.OrderDocumentFormat.t()
         }
   @doc Inttegro.Docs.constructor_doc(__MODULE__)
   @spec new!(map() | keyword()) :: t()
@@ -395,12 +455,7 @@ defmodule Inttegro.Invoices.OrderFormat do
   def from_map(map) when is_map(map) do
     %__MODULE__{
       web: Inttegro.Invoices.OrderDocumentFormat.from_map(Map.fetch!(map, "web")),
-      pdf: Inttegro.Invoices.OrderDocumentFormat.from_map(Map.fetch!(map, "pdf")),
-      receipt:
-        if(is_nil(Map.get(map, "receipt")),
-          do: nil,
-          else: Inttegro.Invoices.OrderDocumentFormat.from_map(Map.get(map, "receipt"))
-        )
+      pdf: Inttegro.Invoices.OrderDocumentFormat.from_map(Map.fetch!(map, "pdf"))
     }
   end
 
@@ -409,8 +464,7 @@ defmodule Inttegro.Invoices.OrderFormat do
   def to_map(value) do
     %{
       "web" => Inttegro.Codec.encode(value.web),
-      "pdf" => Inttegro.Codec.encode(value.pdf),
-      "receipt" => if(is_nil(value.receipt), do: nil, else: Inttegro.Codec.encode(value.receipt))
+      "pdf" => Inttegro.Codec.encode(value.pdf)
     }
     |> Enum.reject(fn {_key, item} -> is_nil(item) end)
     |> Map.new()
