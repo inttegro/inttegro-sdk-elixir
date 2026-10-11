@@ -50,7 +50,12 @@ defmodule Inttegro.PublicAPITest do
   test "wire envelopes are unwrapped into domain values" do
     Req.Test.stub(__MODULE__, fn conn ->
       Req.Test.json(conn, %{
-        "app" => %{"id" => "app_test", "name" => "Test", "created_at" => "2026-09-07T00:00:00Z"}
+        "app" => %{
+          "id" => "app_test",
+          "name" => "Test",
+          "created_at" => "2026-09-07T00:00:00Z",
+          "capabilities" => %{}
+        }
       })
     end)
 

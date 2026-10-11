@@ -87,7 +87,7 @@ end
 
 defmodule Inttegro.Apps.Application do
   @moduledoc Inttegro.Docs.module_doc(__MODULE__, :domain)
-  @enforce_keys [:id, :name, :created_at]
+  @enforce_keys [:id, :name, :created_at, :capabilities]
   defstruct id: nil,
             name: nil,
             alias: nil,
@@ -95,6 +95,7 @@ defmodule Inttegro.Apps.Application do
             created_at: nil,
             updated_at: nil,
             archived_at: nil,
+            capabilities: nil,
             secret_key: nil,
             relationship: nil
 
@@ -107,6 +108,7 @@ defmodule Inttegro.Apps.Application do
           created_at: DateTime.t(),
           updated_at: DateTime.t() | nil,
           archived_at: DateTime.t() | nil,
+          capabilities: map(),
           secret_key: Inttegro.Apps.ApplicationSecretKey.t() | nil,
           relationship: Inttegro.Apps.ApplicationRelationship.t() | nil
         }
@@ -133,6 +135,7 @@ defmodule Inttegro.Apps.Application do
           do: nil,
           else: Inttegro.Codec.decode_timestamp(Map.get(map, "archived_at"))
         ),
+      capabilities: Map.fetch!(map, "capabilities"),
       secret_key:
         if(is_nil(Map.get(map, "secret_key")),
           do: nil,
@@ -160,10 +163,44 @@ defmodule Inttegro.Apps.Application do
         if(is_nil(value.updated_at), do: nil, else: Inttegro.Codec.encode(value.updated_at)),
       "archived_at" =>
         if(is_nil(value.archived_at), do: nil, else: Inttegro.Codec.encode(value.archived_at)),
+      "capabilities" => Inttegro.Codec.encode(value.capabilities),
       "secret_key" =>
         if(is_nil(value.secret_key), do: nil, else: Inttegro.Codec.encode(value.secret_key)),
       "relationship" =>
         if(is_nil(value.relationship), do: nil, else: Inttegro.Codec.encode(value.relationship))
+    }
+    |> Enum.reject(fn {_key, item} -> is_nil(item) end)
+    |> Map.new()
+  end
+end
+
+defmodule Inttegro.Apps.ApplicationRelationshipParent do
+  @moduledoc Inttegro.Docs.module_doc(__MODULE__, :domain)
+  @enforce_keys [:id, :name]
+  defstruct id: nil, name: nil, alias: nil
+
+  @typedoc Inttegro.Docs.type_doc(__MODULE__, :domain)
+  @type t :: %__MODULE__{id: String.t(), name: String.t(), alias: String.t() | nil}
+  @doc Inttegro.Docs.constructor_doc(__MODULE__)
+  @spec new!(map() | keyword()) :: t()
+  def new!(attrs \\ %{}), do: struct!(__MODULE__, attrs)
+  @doc false
+  @spec from_map(map()) :: t()
+  def from_map(map) when is_map(map) do
+    %__MODULE__{
+      id: Map.fetch!(map, "id"),
+      name: Map.fetch!(map, "name"),
+      alias: Map.get(map, "alias")
+    }
+  end
+
+  @doc false
+  @spec to_map(t()) :: map()
+  def to_map(value) do
+    %{
+      "id" => Inttegro.Codec.encode(value.id),
+      "name" => Inttegro.Codec.encode(value.name),
+      "alias" => if(is_nil(value.alias), do: nil, else: Inttegro.Codec.encode(value.alias))
     }
     |> Enum.reject(fn {_key, item} -> is_nil(item) end)
     |> Map.new()
@@ -175,46 +212,22 @@ defmodule Inttegro.Apps.ApplicationRelationship do
   @enforce_keys [
     :id,
     :kind,
-    :policy_version,
+    :parent,
     :status,
-    :actor_app_id,
-    :creator_app_id,
-    :placement_parent_app_id,
-    :subject_app_id,
-    :child_app_id,
-    :child_standing,
-    :relationship_policy,
-    :retained_creator_authority_exists,
     :created_at
   ]
   defstruct id: nil,
             kind: nil,
-            policy_version: nil,
+            parent: nil,
             status: nil,
-            actor_app_id: nil,
-            creator_app_id: nil,
-            placement_parent_app_id: nil,
-            subject_app_id: nil,
-            child_app_id: nil,
-            child_standing: nil,
-            relationship_policy: nil,
-            retained_creator_authority_exists: nil,
             created_at: nil
 
   @typedoc Inttegro.Docs.type_doc(__MODULE__, :domain)
   @type t :: %__MODULE__{
           id: String.t(),
           kind: Inttegro.Apps.AppRelationshipKind.t(),
-          policy_version: String.t(),
+          parent: Inttegro.Apps.ApplicationRelationshipParent.t(),
           status: Inttegro.Apps.AppRelationshipStatus.t(),
-          actor_app_id: String.t(),
-          creator_app_id: String.t(),
-          placement_parent_app_id: String.t(),
-          subject_app_id: String.t(),
-          child_app_id: String.t(),
-          child_standing: String.t(),
-          relationship_policy: Inttegro.Apps.ApplicationRelationshipPolicy.t(),
-          retained_creator_authority_exists: boolean(),
           created_at: DateTime.t()
         }
   @doc Inttegro.Docs.constructor_doc(__MODULE__)
@@ -226,19 +239,8 @@ defmodule Inttegro.Apps.ApplicationRelationship do
     %__MODULE__{
       id: Map.fetch!(map, "id"),
       kind: Inttegro.Apps.AppRelationshipKind.decode(Map.fetch!(map, "kind")),
-      policy_version: Map.fetch!(map, "policy_version"),
+      parent: Inttegro.Apps.ApplicationRelationshipParent.from_map(Map.fetch!(map, "parent")),
       status: Inttegro.Apps.AppRelationshipStatus.decode(Map.fetch!(map, "status")),
-      actor_app_id: Map.fetch!(map, "actor_app_id"),
-      creator_app_id: Map.fetch!(map, "creator_app_id"),
-      placement_parent_app_id: Map.fetch!(map, "placement_parent_app_id"),
-      subject_app_id: Map.fetch!(map, "subject_app_id"),
-      child_app_id: Map.fetch!(map, "child_app_id"),
-      child_standing: Map.fetch!(map, "child_standing"),
-      relationship_policy:
-        Inttegro.Apps.ApplicationRelationshipPolicy.from_map(
-          Map.fetch!(map, "relationship_policy")
-        ),
-      retained_creator_authority_exists: Map.fetch!(map, "retained_creator_authority_exists"),
       created_at: Inttegro.Codec.decode_timestamp(Map.fetch!(map, "created_at"))
     }
   end
@@ -249,17 +251,8 @@ defmodule Inttegro.Apps.ApplicationRelationship do
     %{
       "id" => Inttegro.Codec.encode(value.id),
       "kind" => Inttegro.Apps.AppRelationshipKind.encode(value.kind),
-      "policy_version" => Inttegro.Codec.encode(value.policy_version),
+      "parent" => Inttegro.Codec.encode(value.parent),
       "status" => Inttegro.Apps.AppRelationshipStatus.encode(value.status),
-      "actor_app_id" => Inttegro.Codec.encode(value.actor_app_id),
-      "creator_app_id" => Inttegro.Codec.encode(value.creator_app_id),
-      "placement_parent_app_id" => Inttegro.Codec.encode(value.placement_parent_app_id),
-      "subject_app_id" => Inttegro.Codec.encode(value.subject_app_id),
-      "child_app_id" => Inttegro.Codec.encode(value.child_app_id),
-      "child_standing" => Inttegro.Codec.encode(value.child_standing),
-      "relationship_policy" => Inttegro.Codec.encode(value.relationship_policy),
-      "retained_creator_authority_exists" =>
-        Inttegro.Codec.encode(value.retained_creator_authority_exists),
       "created_at" => Inttegro.Codec.encode(value.created_at)
     }
     |> Enum.reject(fn {_key, item} -> is_nil(item) end)
