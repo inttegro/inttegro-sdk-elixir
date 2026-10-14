@@ -613,15 +613,70 @@ defmodule Inttegro.Payouts.Destinations do
   end
 end
 
+defmodule Inttegro.Payouts.AmountLimits do
+  @moduledoc """
+  The inclusive payout amount range enforced by the platform for the configured settlement currency.
+
+  Compare a proposed payout against both `min` and `max` before asking Inttegro to schedule it.
+  """
+  @enforce_keys [:min, :max]
+  defstruct min: nil, max: nil
+
+  @type t :: %__MODULE__{min: Inttegro.Money.Amount.t(), max: Inttegro.Money.Amount.t()}
+
+  @spec new!(map() | keyword()) :: t()
+  def new!(attrs), do: struct!(__MODULE__, attrs)
+
+  @doc false
+  @spec from_map(map()) :: t()
+  def from_map(map) do
+    %__MODULE__{
+      min: Inttegro.Money.Amount.from_map(Map.fetch!(map, "min")),
+      max: Inttegro.Money.Amount.from_map(Map.fetch!(map, "max"))
+    }
+  end
+
+  @doc false
+  @spec to_map(t()) :: map()
+  def to_map(value),
+    do: %{"min" => Inttegro.Codec.encode(value.min), "max" => Inttegro.Codec.encode(value.max)}
+end
+
+defmodule Inttegro.Payouts.SettingsLimits do
+  @moduledoc """
+  Platform limits that apply when scheduling payouts for the authenticated application.
+
+  The nested amount range keeps the settings response extensible as additional limits are introduced.
+  """
+  @enforce_keys [:amount]
+  defstruct amount: nil
+
+  @type t :: %__MODULE__{amount: Inttegro.Payouts.AmountLimits.t()}
+
+  @spec new!(map() | keyword()) :: t()
+  def new!(attrs), do: struct!(__MODULE__, attrs)
+
+  @doc false
+  @spec from_map(map()) :: t()
+  def from_map(map) do
+    %__MODULE__{amount: Inttegro.Payouts.AmountLimits.from_map(Map.fetch!(map, "amount"))}
+  end
+
+  @doc false
+  @spec to_map(t()) :: map()
+  def to_map(value), do: %{"amount" => Inttegro.Codec.encode(value.amount)}
+end
+
 defmodule Inttegro.Payouts.SettingsLookup do
   @moduledoc Inttegro.Docs.module_doc(__MODULE__, :domain)
-  @enforce_keys [:destinations]
-  defstruct destinations: nil, fx_enabled: nil, schedule: nil
+  @enforce_keys [:destinations, :limits]
+  defstruct destinations: nil, fx_enabled: nil, limits: nil, schedule: nil
 
   @typedoc Inttegro.Docs.type_doc(__MODULE__, :domain)
   @type t :: %__MODULE__{
           destinations: Inttegro.Payouts.Destinations.t(),
           fx_enabled: boolean() | nil,
+          limits: Inttegro.Payouts.SettingsLimits.t(),
           schedule: Inttegro.Payouts.SettingsLookupSchedule.t() | nil
         }
   @doc Inttegro.Docs.constructor_doc(__MODULE__)
@@ -634,6 +689,7 @@ defmodule Inttegro.Payouts.SettingsLookup do
       destinations: Inttegro.Payouts.Destinations.from_map(Map.fetch!(map, "destinations")),
       fx_enabled:
         if(is_nil(Map.get(map, "fx_enabled")), do: nil, else: Map.get(map, "fx_enabled")),
+      limits: Inttegro.Payouts.SettingsLimits.from_map(Map.fetch!(map, "limits")),
       schedule:
         if(is_nil(Map.get(map, "schedule")),
           do: nil,
@@ -649,6 +705,7 @@ defmodule Inttegro.Payouts.SettingsLookup do
       "destinations" => Inttegro.Codec.encode(value.destinations),
       "fx_enabled" =>
         if(is_nil(value.fx_enabled), do: nil, else: Inttegro.Codec.encode(value.fx_enabled)),
+      "limits" => Inttegro.Codec.encode(value.limits),
       "schedule" =>
         if(is_nil(value.schedule), do: nil, else: Inttegro.Codec.encode(value.schedule))
     }
@@ -748,13 +805,15 @@ end
 
 defmodule Inttegro.Payouts.SettingsMutation do
   @moduledoc Inttegro.Docs.module_doc(__MODULE__, :domain)
-  defstruct destinations: nil, fx_enabled: nil, id: nil, schedule: nil
+  @enforce_keys [:limits]
+  defstruct destinations: nil, fx_enabled: nil, id: nil, limits: nil, schedule: nil
 
   @typedoc Inttegro.Docs.type_doc(__MODULE__, :domain)
   @type t :: %__MODULE__{
           destinations: Inttegro.Payouts.Destinations.t() | nil,
           fx_enabled: boolean() | nil,
           id: String.t() | nil,
+          limits: Inttegro.Payouts.SettingsLimits.t(),
           schedule: Inttegro.Payouts.SettingsMutationSchedule.t() | nil
         }
   @doc Inttegro.Docs.constructor_doc(__MODULE__)
@@ -772,6 +831,7 @@ defmodule Inttegro.Payouts.SettingsMutation do
       fx_enabled:
         if(is_nil(Map.get(map, "fx_enabled")), do: nil, else: Map.get(map, "fx_enabled")),
       id: if(is_nil(Map.get(map, "id")), do: nil, else: Map.get(map, "id")),
+      limits: Inttegro.Payouts.SettingsLimits.from_map(Map.fetch!(map, "limits")),
       schedule:
         if(is_nil(Map.get(map, "schedule")),
           do: nil,
@@ -792,6 +852,7 @@ defmodule Inttegro.Payouts.SettingsMutation do
       "fx_enabled" =>
         if(is_nil(value.fx_enabled), do: nil, else: Inttegro.Codec.encode(value.fx_enabled)),
       "id" => if(is_nil(value.id), do: nil, else: Inttegro.Codec.encode(value.id)),
+      "limits" => Inttegro.Codec.encode(value.limits),
       "schedule" =>
         if(is_nil(value.schedule), do: nil, else: Inttegro.Codec.encode(value.schedule))
     }

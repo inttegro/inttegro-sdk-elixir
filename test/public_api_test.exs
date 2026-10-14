@@ -277,11 +277,19 @@ defmodule Inttegro.PublicAPITest do
       Inttegro.Payouts.SettingsMutation.from_map(%{
         "destinations" => %{"ghs" => "fa_123"},
         "fx_enabled" => true,
-        "id" => "settings_123"
+        "id" => "settings_123",
+        "limits" => %{
+          "amount" => %{
+            "min" => %{"currency" => "ghs", "value" => 25_000},
+            "max" => %{"currency" => "ghs", "value" => 9_999_999}
+          }
+        }
       })
 
     assert settings.destinations.ghs == "fa_123"
     assert settings.fx_enabled
+    assert settings.limits.amount.min.value == 25_000
+    assert settings.limits.amount.max.value == 9_999_999
 
     assert Inttegro.Payouts.SettingsMutation.to_map(settings)["destinations"] == %{
              "ghs" => "fa_123"
