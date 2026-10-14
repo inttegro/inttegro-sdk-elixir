@@ -85,6 +85,162 @@ defmodule Inttegro.Apps.AppRelationshipStatus do
     do: Enum.find_value(@values, value, fn {key, wire} -> if wire == value, do: key end)
 end
 
+defmodule Inttegro.Apps.CapabilityRequirement do
+  @moduledoc """
+  A public setup item that must be completed before an application capability can be enabled.
+
+  The code is stable for programmatic handling, while the description is suitable for readers.
+  """
+  @enforce_keys [:code, :description]
+  defstruct code: nil, description: nil, due_at: nil
+  @type t :: %__MODULE__{code: String.t(), description: String.t(), due_at: DateTime.t() | nil}
+  @spec new!(map() | keyword()) :: t()
+  def new!(attrs), do: struct!(__MODULE__, attrs)
+  @spec from_map(map()) :: t()
+  def from_map(map) do
+    %__MODULE__{
+      code: Map.fetch!(map, "code"),
+      description: Map.fetch!(map, "description"),
+      due_at: Inttegro.Codec.decode_timestamp(Map.get(map, "due_at"))
+    }
+  end
+
+  @spec to_map(t()) :: map()
+  def to_map(value),
+    do: %{
+      "code" => value.code,
+      "description" => value.description,
+      "due_at" => Inttegro.Codec.encode(value.due_at)
+    }
+end
+
+defmodule Inttegro.Apps.CapabilityRequirements do
+  @moduledoc """
+  The application setup items that currently prevent a commerce capability from being enabled.
+
+  Read `currently_due` to decide what the account owner needs to complete next.
+  """
+  @enforce_keys [:currently_due]
+  defstruct currently_due: []
+  @type t :: %__MODULE__{currently_due: [Inttegro.Apps.CapabilityRequirement.t()]}
+  @spec new!(map() | keyword()) :: t()
+  def new!(attrs), do: struct!(__MODULE__, attrs)
+  @spec from_map(map()) :: t()
+  def from_map(map),
+    do: %__MODULE__{
+      currently_due:
+        Enum.map(
+          Map.fetch!(map, "currently_due"),
+          &Inttegro.Apps.CapabilityRequirement.from_map/1
+        )
+    }
+
+  @spec to_map(t()) :: map()
+  def to_map(value),
+    do: %{
+      "currently_due" =>
+        Enum.map(value.currently_due, &Inttegro.Apps.CapabilityRequirement.to_map/1)
+    }
+end
+
+defmodule Inttegro.Apps.Capability do
+  @moduledoc """
+  The current availability of one application commerce capability and the time its state changed.
+
+  Restricted states can include a public reason and the requirements that are currently due.
+  """
+  @enforce_keys [:status, :status_changed_at]
+  defstruct status: nil, status_changed_at: nil, status_reason: nil, requirements: nil
+
+  @type t :: %__MODULE__{
+          status: :enabled | :restricted | :pending_review | String.t(),
+          status_changed_at: DateTime.t(),
+          status_reason:
+            :setup_incomplete
+            | :account_under_review
+            | :account_restricted
+            | :account_inactive
+            | String.t()
+            | nil,
+          requirements: Inttegro.Apps.CapabilityRequirements.t() | nil
+        }
+  @spec new!(map() | keyword()) :: t()
+  def new!(attrs), do: struct!(__MODULE__, attrs)
+  @spec from_map(map()) :: t()
+  def from_map(map) do
+    %__MODULE__{
+      status: decode_atom(Map.fetch!(map, "status")),
+      status_changed_at: Inttegro.Codec.decode_timestamp(Map.fetch!(map, "status_changed_at")),
+      status_reason:
+        if(is_nil(Map.get(map, "status_reason")),
+          do: nil,
+          else: decode_atom(Map.get(map, "status_reason"))
+        ),
+      requirements:
+        if(is_nil(Map.get(map, "requirements")),
+          do: nil,
+          else: Inttegro.Apps.CapabilityRequirements.from_map(Map.get(map, "requirements"))
+        )
+    }
+  end
+
+  @spec to_map(t()) :: map()
+  def to_map(value) do
+    %{
+      "status" => to_string(value.status),
+      "status_changed_at" => Inttegro.Codec.encode(value.status_changed_at),
+      "status_reason" =>
+        if(is_nil(value.status_reason), do: nil, else: to_string(value.status_reason)),
+      "requirements" =>
+        if(is_nil(value.requirements),
+          do: nil,
+          else: Inttegro.Apps.CapabilityRequirements.to_map(value.requirements)
+        )
+    }
+    |> Enum.reject(fn {_key, item} -> is_nil(item) end)
+    |> Map.new()
+  end
+
+  defp decode_atom("enabled"), do: :enabled
+  defp decode_atom("restricted"), do: :restricted
+  defp decode_atom("pending_review"), do: :pending_review
+  defp decode_atom("setup_incomplete"), do: :setup_incomplete
+  defp decode_atom("account_under_review"), do: :account_under_review
+  defp decode_atom("account_restricted"), do: :account_restricted
+  defp decode_atom("account_inactive"), do: :account_inactive
+  defp decode_atom(value), do: value
+end
+
+defmodule Inttegro.Apps.Capabilities do
+  @moduledoc """
+  Payment and payout capability states for the application authenticated by the client's API key.
+
+  Use this value to show availability and guide account owners through any outstanding setup.
+  """
+  @enforce_keys [:payments, :payouts]
+  defstruct payments: nil, payouts: nil
+
+  @type t :: %__MODULE__{
+          payments: Inttegro.Apps.Capability.t(),
+          payouts: Inttegro.Apps.Capability.t()
+        }
+  @spec new!(map() | keyword()) :: t()
+  def new!(attrs), do: struct!(__MODULE__, attrs)
+  @spec from_map(map()) :: t()
+  def from_map(map),
+    do: %__MODULE__{
+      payments: Inttegro.Apps.Capability.from_map(Map.fetch!(map, "payments")),
+      payouts: Inttegro.Apps.Capability.from_map(Map.fetch!(map, "payouts"))
+    }
+
+  @spec to_map(t()) :: map()
+  def to_map(value),
+    do: %{
+      "payments" => Inttegro.Apps.Capability.to_map(value.payments),
+      "payouts" => Inttegro.Apps.Capability.to_map(value.payouts)
+    }
+end
+
 defmodule Inttegro.Apps.Application do
   @moduledoc Inttegro.Docs.module_doc(__MODULE__, :domain)
   @enforce_keys [:id, :name, :created_at, :capabilities]

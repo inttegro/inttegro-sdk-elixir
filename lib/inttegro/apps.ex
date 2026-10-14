@@ -82,6 +82,25 @@ defmodule Inttegro.Apps do
     end
   end
 
+  @doc "Retrieves the authenticated application's payment and payout capabilities."
+  @spec capabilities(Client.t(), keyword()) ::
+          {:ok, Inttegro.Apps.Capabilities.t()} | {:error, Exception.t()}
+  def capabilities(client, options \\ []) do
+    with {:ok, value} <-
+           Client.request(
+             client,
+             "POST",
+             "/apps/capabilities",
+             %{},
+             options,
+             "apps.capabilities",
+             "capabilities",
+             true
+           ) do
+      {:ok, Inttegro.Apps.Capabilities.from_map(value)}
+    end
+  end
+
   @doc """
   Updates one or more mutable attributes of the application associated with the API key used to authenticate the request.
 
