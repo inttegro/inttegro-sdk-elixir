@@ -768,12 +768,13 @@ end
 
 defmodule Inttegro.Payouts.SettingsLookupScheduleAgingSpec do
   @moduledoc Inttegro.Docs.module_doc(__MODULE__, :domain)
-  @enforce_keys [:abide, :label, :t_plus]
-  defstruct abide: nil, label: nil, t_plus: nil
+  @enforce_keys [:abide, :public_id, :label, :t_plus]
+  defstruct abide: nil, public_id: nil, label: nil, t_plus: nil
 
   @typedoc Inttegro.Docs.type_doc(__MODULE__, :domain)
   @type t :: %__MODULE__{
           abide: String.t(),
+          public_id: String.t(),
           label: String.t(),
           t_plus: String.t()
         }
@@ -785,6 +786,7 @@ defmodule Inttegro.Payouts.SettingsLookupScheduleAgingSpec do
   def from_map(map) when is_map(map) do
     %__MODULE__{
       abide: Map.fetch!(map, "abide"),
+      public_id: Map.fetch!(map, "public_id"),
       label: Map.fetch!(map, "label"),
       t_plus: Map.fetch!(map, "t_plus")
     }
@@ -795,6 +797,7 @@ defmodule Inttegro.Payouts.SettingsLookupScheduleAgingSpec do
   def to_map(value) do
     %{
       "abide" => Inttegro.Codec.encode(value.abide),
+      "public_id" => Inttegro.Codec.encode(value.public_id),
       "label" => Inttegro.Codec.encode(value.label),
       "t_plus" => Inttegro.Codec.encode(value.t_plus)
     }
@@ -918,13 +921,13 @@ end
 
 defmodule Inttegro.Payouts.SettingsMutationScheduleSpec do
   @moduledoc Inttegro.Docs.module_doc(__MODULE__, :domain)
-  @enforce_keys [:abide, :id, :label, :t_plus]
-  defstruct abide: nil, id: nil, label: nil, t_plus: nil
+  @enforce_keys [:abide, :public_id, :label, :t_plus]
+  defstruct abide: nil, public_id: nil, label: nil, t_plus: nil
 
   @typedoc Inttegro.Docs.type_doc(__MODULE__, :domain)
   @type t :: %__MODULE__{
           abide: String.t(),
-          id: String.t(),
+          public_id: String.t(),
           label: String.t(),
           t_plus: String.t()
         }
@@ -936,7 +939,7 @@ defmodule Inttegro.Payouts.SettingsMutationScheduleSpec do
   def from_map(map) when is_map(map) do
     %__MODULE__{
       abide: Map.fetch!(map, "abide"),
-      id: Map.fetch!(map, "id"),
+      public_id: Map.fetch!(map, "public_id"),
       label: Map.fetch!(map, "label"),
       t_plus: Map.fetch!(map, "t_plus")
     }
@@ -947,7 +950,7 @@ defmodule Inttegro.Payouts.SettingsMutationScheduleSpec do
   def to_map(value) do
     %{
       "abide" => Inttegro.Codec.encode(value.abide),
-      "id" => Inttegro.Codec.encode(value.id),
+      "public_id" => Inttegro.Codec.encode(value.public_id),
       "label" => Inttegro.Codec.encode(value.label),
       "t_plus" => Inttegro.Codec.encode(value.t_plus)
     }
