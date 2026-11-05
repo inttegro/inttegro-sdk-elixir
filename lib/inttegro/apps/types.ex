@@ -253,7 +253,8 @@ defmodule Inttegro.Apps.Application do
             archived_at: nil,
             capabilities: nil,
             secret_key: nil,
-            relationship: nil
+            relationship: nil,
+            operating_policy: nil
 
   @typedoc Inttegro.Docs.type_doc(__MODULE__, :domain)
   @type t :: %__MODULE__{
@@ -266,7 +267,8 @@ defmodule Inttegro.Apps.Application do
           archived_at: DateTime.t() | nil,
           capabilities: map(),
           secret_key: Inttegro.Apps.ApplicationSecretKey.t() | nil,
-          relationship: Inttegro.Apps.ApplicationRelationship.t() | nil
+          relationship: Inttegro.Apps.ApplicationRelationship.t() | nil,
+          operating_policy: Inttegro.OperatingPolicies.ApplicationPolicy.t() | nil
         }
   @doc Inttegro.Docs.constructor_doc(__MODULE__)
   @spec new!(map() | keyword()) :: t()
@@ -301,6 +303,14 @@ defmodule Inttegro.Apps.Application do
         if(is_nil(Map.get(map, "relationship")),
           do: nil,
           else: Inttegro.Apps.ApplicationRelationship.from_map(Map.get(map, "relationship"))
+        ),
+      operating_policy:
+        if(is_nil(Map.get(map, "operating_policy")),
+          do: nil,
+          else:
+            Inttegro.OperatingPolicies.ApplicationPolicy.from_map(
+              Map.get(map, "operating_policy")
+            )
         )
     }
   end
@@ -323,7 +333,12 @@ defmodule Inttegro.Apps.Application do
       "secret_key" =>
         if(is_nil(value.secret_key), do: nil, else: Inttegro.Codec.encode(value.secret_key)),
       "relationship" =>
-        if(is_nil(value.relationship), do: nil, else: Inttegro.Codec.encode(value.relationship))
+        if(is_nil(value.relationship), do: nil, else: Inttegro.Codec.encode(value.relationship)),
+      "operating_policy" =>
+        if(is_nil(value.operating_policy),
+          do: nil,
+          else: Inttegro.Codec.encode(value.operating_policy)
+        )
     }
     |> Enum.reject(fn {_key, item} -> is_nil(item) end)
     |> Map.new()
@@ -507,6 +522,7 @@ defmodule Inttegro.Apps.CreateApplicationRequest do
             legal_entity_type: nil,
             placement_parent_application_id: nil,
             relationship_policy: nil,
+            operating_policy: nil,
             name: nil
 
   @typedoc Inttegro.Docs.type_doc(__MODULE__, :request)
@@ -516,6 +532,10 @@ defmodule Inttegro.Apps.CreateApplicationRequest do
           legal_entity_type: String.t() | nil,
           placement_parent_application_id: String.t() | nil,
           relationship_policy: Inttegro.Apps.CreateApplicationRequestRelationshipPolicy.t() | nil,
+          operating_policy:
+            Inttegro.OperatingPolicies.SelectionByID.t()
+            | Inttegro.OperatingPolicies.InlineSelection.t()
+            | nil,
           name: String.t()
         }
   @doc Inttegro.Docs.constructor_doc(__MODULE__)
@@ -546,6 +566,7 @@ defmodule Inttegro.Apps.CreateApplicationRequest do
               Map.get(map, "relationship_policy")
             )
         ),
+      operating_policy: decode_operating_policy(Map.get(map, "operating_policy")),
       name: Map.fetch!(map, "name")
     }
   end
@@ -572,11 +593,24 @@ defmodule Inttegro.Apps.CreateApplicationRequest do
           do: nil,
           else: Inttegro.Codec.encode(value.relationship_policy)
         ),
+      "operating_policy" =>
+        if(is_nil(value.operating_policy),
+          do: nil,
+          else: Inttegro.Codec.encode(value.operating_policy)
+        ),
       "name" => Inttegro.Codec.encode(value.name)
     }
     |> Enum.reject(fn {_key, item} -> is_nil(item) end)
     |> Map.new()
   end
+
+  defp decode_operating_policy(nil), do: nil
+
+  defp decode_operating_policy(%{"id" => _} = value),
+    do: Inttegro.OperatingPolicies.SelectionByID.from_map(value)
+
+  defp decode_operating_policy(value),
+    do: Inttegro.OperatingPolicies.InlineSelection.from_map(value)
 end
 
 defmodule Inttegro.Apps.CreateApplicationRequestRelationshipPolicy do
@@ -638,14 +672,18 @@ end
 
 defmodule Inttegro.Apps.UpdateApplicationRequest do
   @moduledoc Inttegro.Docs.module_doc(__MODULE__, :request)
-  defstruct name: nil, alias: nil, description: nil, legal_entity_type: nil
+  defstruct name: nil, alias: nil, description: nil, legal_entity_type: nil, operating_policy: nil
 
   @typedoc Inttegro.Docs.type_doc(__MODULE__, :request)
   @type t :: %__MODULE__{
           name: String.t() | nil,
           alias: String.t() | nil,
           description: String.t() | nil,
-          legal_entity_type: String.t() | nil
+          legal_entity_type: String.t() | nil,
+          operating_policy:
+            Inttegro.OperatingPolicies.SelectionByID.t()
+            | Inttegro.OperatingPolicies.InlineSelection.t()
+            | nil
         }
   @doc Inttegro.Docs.constructor_doc(__MODULE__)
   @spec new!(map() | keyword()) :: t()
@@ -662,7 +700,8 @@ defmodule Inttegro.Apps.UpdateApplicationRequest do
         if(is_nil(Map.get(map, "legal_entity_type")),
           do: nil,
           else: Map.get(map, "legal_entity_type")
-        )
+        ),
+      operating_policy: decode_operating_policy(Map.get(map, "operating_policy"))
     }
   end
 
@@ -678,9 +717,22 @@ defmodule Inttegro.Apps.UpdateApplicationRequest do
         if(is_nil(value.legal_entity_type),
           do: nil,
           else: Inttegro.Codec.encode(value.legal_entity_type)
+        ),
+      "operating_policy" =>
+        if(is_nil(value.operating_policy),
+          do: nil,
+          else: Inttegro.Codec.encode(value.operating_policy)
         )
     }
     |> Enum.reject(fn {_key, item} -> is_nil(item) end)
     |> Map.new()
   end
+
+  defp decode_operating_policy(nil), do: nil
+
+  defp decode_operating_policy(%{"id" => _} = value),
+    do: Inttegro.OperatingPolicies.SelectionByID.from_map(value)
+
+  defp decode_operating_policy(value),
+    do: Inttegro.OperatingPolicies.InlineSelection.from_map(value)
 end

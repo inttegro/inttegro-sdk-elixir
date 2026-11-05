@@ -14,6 +14,21 @@ defmodule Inttegro.PublicAPITest do
     assert Inttegro.Otp.Purpose.decode("payment_confirmation") == :payment_confirmation
   end
 
+  test "operating policy selections preserve their public wire shapes" do
+    named = Inttegro.OperatingPolicies.SelectionByID.new!(id: "op_123")
+    assert Inttegro.Codec.encode(named) == %{"id" => "op_123"}
+
+    inline =
+      Inttegro.OperatingPolicies.InlineSelection.new!(
+        capabilities: Inttegro.OperatingPolicies.CapabilitiesInput.new!()
+      )
+
+    assert Inttegro.Codec.encode(inline) == %{"capabilities" => %{}}
+
+    request = Inttegro.Apps.CreateApplicationRequest.new!(name: "Child", operating_policy: named)
+    assert Inttegro.Codec.encode(request)["operating_policy"] == %{"id" => "op_123"}
+  end
+
   test "balance transactions expose caller-safe allocation summaries" do
     transaction =
       Inttegro.BalanceTransactions.BalanceTransaction.from_map(%{
@@ -399,6 +414,7 @@ defmodule Inttegro.PublicAPITest do
       Inttegro.BankAccounts,
       Inttegro.Broadcasts,
       Inttegro.Checkout,
+      Inttegro.ChildrenPolicies,
       Inttegro.Chimes,
       Inttegro.Client,
       Inttegro.CustomData,
@@ -414,6 +430,7 @@ defmodule Inttegro.PublicAPITest do
       Inttegro.Keys,
       Inttegro.MessageTemplates,
       Inttegro.Money,
+      Inttegro.OperatingPolicies,
       Inttegro.Orders,
       Inttegro.Otp,
       Inttegro.PaymentMethods,
@@ -441,6 +458,7 @@ defmodule Inttegro.PublicAPITest do
       Inttegro.Balances,
       Inttegro.Broadcasts,
       Inttegro.Chimes,
+      Inttegro.ChildrenPolicies,
       Inttegro.Customers,
       Inttegro.FileLinks,
       Inttegro.FileReferences,
@@ -448,6 +466,7 @@ defmodule Inttegro.PublicAPITest do
       Inttegro.FinancialAccounts,
       Inttegro.Keys,
       Inttegro.MessageTemplates,
+      Inttegro.OperatingPolicies,
       Inttegro.Orders,
       Inttegro.Otp,
       Inttegro.PaymentMethods,

@@ -1,5 +1,12 @@
 # Changelog
 
+## 0.12.0
+
+- Added typed private-beta children-policy lookup and operating-policy create,
+  lookup, and versioned update endpoints.
+- Added typed operating-policy selection to application create and update,
+  together with gated operating-policy projections on application responses.
+
 ## 0.11.0
 
 - Breaking: replaced the legacy flat payout minimum with typed

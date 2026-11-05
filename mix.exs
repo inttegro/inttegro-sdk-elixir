@@ -1,7 +1,7 @@
 defmodule Inttegro.MixProject do
   use Mix.Project
 
-  @version "0.11.0"
+  @version "0.12.0"
 
   def project do
     [
@@ -55,6 +55,7 @@ defmodule Inttegro.MixProject do
         Inttegro.CustomDataInput,
         Inttegro.CustomDataPatch,
         Inttegro.Customers,
+        Inttegro.ChildrenPolicies,
         Inttegro.Errors,
         Inttegro.FileLinks,
         Inttegro.FileReferences,
@@ -65,6 +66,7 @@ defmodule Inttegro.MixProject do
         Inttegro.MessageTemplates,
         Inttegro.Money,
         Inttegro.Orders,
+        Inttegro.OperatingPolicies,
         Inttegro.Otp,
         Inttegro.PaymentMethods,
         Inttegro.Payments,
@@ -142,7 +144,9 @@ defmodule Inttegro.MixProject do
         ],
         Platform: [
           ~r/^Inttegro\.Apps/,
+          ~r/^Inttegro\.ChildrenPolicies/,
           ~r/^Inttegro\.Keys/,
+          ~r/^Inttegro\.OperatingPolicies/,
           ~r/^Inttegro\.Specifications/,
           ~r/^Inttegro\.Schedules/,
           ~r/^Inttegro\.Shared/
