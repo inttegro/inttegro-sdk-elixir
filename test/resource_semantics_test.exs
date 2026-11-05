@@ -130,4 +130,26 @@ defmodule Inttegro.ResourceSemanticsTest do
              "segment" => "enterprise"
            }
   end
+
+  test "policy aging specifications expose public_id on the response wire contract" do
+    children =
+      Inttegro.ChildrenPolicies.BTAgingSpec.from_map(%{
+        "public_id" => "bt_aging_spec_immediate",
+        "t_plus" => "0h"
+      })
+
+    operating =
+      Inttegro.OperatingPolicies.BTAgingSpec.from_map(%{
+        "public_id" => "bt_aging_spec_168_hourly",
+        "t_plus" => "168h"
+      })
+
+    assert children.public_id == "bt_aging_spec_immediate"
+    assert operating.public_id == "bt_aging_spec_168_hourly"
+
+    assert Inttegro.OperatingPolicies.BTAgingSpec.to_map(operating) == %{
+             "public_id" => "bt_aging_spec_168_hourly",
+             "t_plus" => "168h"
+           }
+  end
 end

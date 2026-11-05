@@ -427,12 +427,76 @@ defmodule Inttegro.OperatingPolicies.CreateRequest do
 end
 
 defmodule Inttegro.OperatingPolicies.LookupRequest do
-  @moduledoc "Public operating-policy identifier used to retrieve its latest active version from the Inttegro API."
+  @moduledoc """
+  Selects an operating policy by public identifier and optionally an exact immutable version.
+  Leaving `version` unset retrieves that policy's latest active version.
+  """
   @enforce_keys [:operating_policy_id]
-  defstruct [:operating_policy_id]
-  @type t :: %__MODULE__{operating_policy_id: String.t()}
+  defstruct [:operating_policy_id, :version]
+  @type t :: %__MODULE__{operating_policy_id: String.t(), version: pos_integer() | nil}
+
+  def new!(attrs) do
+    request = struct!(__MODULE__, attrs)
+    validate_version!(request.version)
+    request
+  end
+
+  def to_map(value),
+    do:
+      Map.reject(
+        %{"operating_policy_id" => value.operating_policy_id, "version" => value.version},
+        fn {_key, item} -> is_nil(item) end
+      )
+
+  defp validate_version!(nil), do: :ok
+  defp validate_version!(version) when is_integer(version) and version >= 1, do: :ok
+  defp validate_version!(_version), do: raise(ArgumentError, "version must be a positive integer")
+end
+
+defmodule Inttegro.OperatingPolicies.PageRequest do
+  @moduledoc """
+  Selects one operating policy by public identifier and carries optional `number` and `size`
+  pagination parameters for listing its immutable version history.
+  """
+  @enforce_keys [:operating_policy_id]
+  defstruct [:operating_policy_id, :number, :size]
+  @type t :: %__MODULE__{}
   def new!(attrs), do: struct!(__MODULE__, attrs)
-  def to_map(value), do: %{"operating_policy_id" => value.operating_policy_id}
+
+  def to_map(value),
+    do:
+      Map.reject(
+        %{
+          "operating_policy_id" => value.operating_policy_id,
+          "number" => value.number,
+          "size" => value.size
+        },
+        fn {_key, item} -> is_nil(item) end
+      )
+end
+
+defmodule Inttegro.OperatingPolicies.Page do
+  @moduledoc """
+  Represents one newest-first page of immutable operating-policy versions together with counts,
+  total history size, and whether another page remains available.
+  """
+  @enforce_keys [:number, :size, :count, :total, :has_more, :versions]
+  defstruct [:number, :size, :count, :total, :has_more, :versions]
+  @type t :: %__MODULE__{}
+
+  def from_map(map),
+    do: %__MODULE__{
+      number: Map.fetch!(map, "number"),
+      size: Map.fetch!(map, "size"),
+      count: Map.fetch!(map, "count"),
+      total: Map.fetch!(map, "total"),
+      has_more: Map.fetch!(map, "has_more"),
+      versions:
+        Enum.map(
+          Map.fetch!(map, "versions"),
+          &Inttegro.OperatingPolicies.OperatingPolicy.from_map/1
+        )
+    }
 end
 
 defmodule Inttegro.OperatingPolicies.UpdateRequest do

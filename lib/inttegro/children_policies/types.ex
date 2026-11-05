@@ -92,7 +92,7 @@ defmodule Inttegro.ChildrenPolicies.Capabilities do
 end
 
 defmodule Inttegro.ChildrenPolicies.ChildrenPolicy do
-  @moduledoc "Latest active version of the platform-assigned policy constraining an application's child accounts."
+  @moduledoc "One immutable version of the platform-assigned policy constraining an application's child accounts."
   @enforce_keys [
     :id,
     :version,
@@ -130,4 +130,66 @@ defmodule Inttegro.ChildrenPolicies.ChildrenPolicy do
       version_created_at: Inttegro.Codec.decode_timestamp(Map.fetch!(map, "version_created_at"))
     }
   end
+end
+
+defmodule Inttegro.ChildrenPolicies.LookupRequest do
+  @moduledoc """
+  Selects an exact children-policy version for lookup. Leaving `version` unset retrieves the
+  latest active version assigned to the authenticated application.
+  """
+  defstruct [:version]
+  @type t :: %__MODULE__{version: pos_integer() | nil}
+
+  def new!(attrs \\ %{}) do
+    request = struct!(__MODULE__, attrs)
+    validate_version!(request.version)
+    request
+  end
+
+  def to_map(value),
+    do: Map.reject(%{"version" => value.version}, fn {_key, item} -> is_nil(item) end)
+
+  defp validate_version!(nil), do: :ok
+  defp validate_version!(version) when is_integer(version) and version >= 1, do: :ok
+  defp validate_version!(_version), do: raise(ArgumentError, "version must be a positive integer")
+end
+
+defmodule Inttegro.ChildrenPolicies.PageRequest do
+  @moduledoc """
+  Carries optional `number` and `size` pagination parameters when listing immutable versions of
+  the authenticated application's assigned children policy.
+  """
+  defstruct [:number, :size]
+  @type t :: %__MODULE__{number: non_neg_integer() | nil, size: pos_integer() | nil}
+  def new!(attrs \\ %{}), do: struct!(__MODULE__, attrs)
+
+  def to_map(value),
+    do:
+      Map.reject(%{"number" => value.number, "size" => value.size}, fn {_key, item} ->
+        is_nil(item)
+      end)
+end
+
+defmodule Inttegro.ChildrenPolicies.Page do
+  @moduledoc """
+  Represents one newest-first page of immutable children-policy versions together with counts,
+  total history size, and whether another page remains available.
+  """
+  @enforce_keys [:number, :size, :count, :total, :has_more, :versions]
+  defstruct [:number, :size, :count, :total, :has_more, :versions]
+  @type t :: %__MODULE__{}
+
+  def from_map(map),
+    do: %__MODULE__{
+      number: Map.fetch!(map, "number"),
+      size: Map.fetch!(map, "size"),
+      count: Map.fetch!(map, "count"),
+      total: Map.fetch!(map, "total"),
+      has_more: Map.fetch!(map, "has_more"),
+      versions:
+        Enum.map(
+          Map.fetch!(map, "versions"),
+          &Inttegro.ChildrenPolicies.ChildrenPolicy.from_map/1
+        )
+    }
 end

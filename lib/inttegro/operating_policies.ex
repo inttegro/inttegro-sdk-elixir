@@ -25,9 +25,32 @@ defmodule Inttegro.OperatingPolicies do
         options
       )
 
-  def lookup(client, request, options),
-    do:
-      request(client, "/operating_policies/lookup", request, options, "operating_policies.lookup")
+  def lookup(client, request, options) do
+    validate_operating_policy_id!(request.operating_policy_id)
+    validate_version!(request.version)
+    request(client, "/operating_policies/lookup", request, options, "operating_policies.lookup")
+  end
+
+  @spec page(Client.t(), Inttegro.OperatingPolicies.PageRequest.t(), keyword()) ::
+          {:ok, Inttegro.OperatingPolicies.Page.t()} | {:error, Exception.t()}
+  @doc "Lists immutable versions of one operating policy, newest first."
+  def page(client, request, options \\ []) do
+    validate_operating_policy_id!(request.operating_policy_id)
+
+    with {:ok, value} <-
+           Client.request(
+             client,
+             "POST",
+             "/operating_policies/page",
+             Inttegro.Codec.encode(request),
+             options,
+             "operating_policies.page",
+             "page",
+             true
+           ) do
+      {:ok, Inttegro.OperatingPolicies.Page.from_map(value)}
+    end
+  end
 
   @spec update(Client.t(), Inttegro.OperatingPolicies.UpdateRequest.t(), keyword()) ::
           {:ok, Inttegro.OperatingPolicies.OperatingPolicy.t()} | {:error, Exception.t()}
@@ -51,4 +74,13 @@ defmodule Inttegro.OperatingPolicies do
       {:ok, Inttegro.OperatingPolicies.OperatingPolicy.from_map(value)}
     end
   end
+
+  defp validate_operating_policy_id!(id) when is_binary(id) and byte_size(id) > 0, do: :ok
+
+  defp validate_operating_policy_id!(_id),
+    do: raise(ArgumentError, "operating_policy_id is required")
+
+  defp validate_version!(nil), do: :ok
+  defp validate_version!(version) when is_integer(version) and version >= 1, do: :ok
+  defp validate_version!(_version), do: raise(ArgumentError, "version must be a positive integer")
 end
