@@ -95,7 +95,6 @@ defmodule Inttegro.ChildrenPolicies.ChildrenPolicy do
   @moduledoc "Latest active version of the platform-assigned policy constraining an application's child accounts."
   @enforce_keys [
     :id,
-    :owner_application_id,
     :version,
     :active_version,
     :name,
@@ -106,7 +105,6 @@ defmodule Inttegro.ChildrenPolicies.ChildrenPolicy do
   ]
   defstruct [
     :id,
-    :owner_application_id,
     :version,
     :active_version,
     :name,
@@ -121,7 +119,6 @@ defmodule Inttegro.ChildrenPolicies.ChildrenPolicy do
   def from_map(map) do
     %__MODULE__{
       id: Map.fetch!(map, "id"),
-      owner_application_id: Map.fetch!(map, "owner_application_id"),
       version: Map.fetch!(map, "version"),
       active_version: Map.fetch!(map, "active_version"),
       name: Map.fetch!(map, "name"),
