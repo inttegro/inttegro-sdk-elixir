@@ -34,6 +34,35 @@ defmodule Inttegro.Payouts.Status do
     do: Enum.find_value(@values, value, fn {key, wire} -> if wire == value, do: key end)
 end
 
+defmodule Inttegro.Payouts.BalanceTransactionStatus do
+  @moduledoc """
+  Describes whether one balance transaction contribution remains reserved for
+  an open payout, completed with a successful payout, or released after the
+  payout did not complete.
+  """
+  @typedoc Inttegro.Docs.type_doc(__MODULE__, :enum)
+  @type t :: :reserved | :completed | :released | String.t()
+  @values %{
+    reserved: "reserved",
+    completed: "completed",
+    released: "released"
+  }
+
+  @doc Inttegro.Docs.enum_values_doc(__MODULE__)
+  @spec values() :: [t()]
+  def values, do: Map.keys(@values)
+
+  @doc false
+  @spec encode(t()) :: String.t()
+  def encode(value) when is_atom(value), do: Map.fetch!(@values, value)
+  def encode(value) when is_binary(value), do: value
+
+  @doc false
+  @spec decode(String.t()) :: t()
+  def decode(value),
+    do: Enum.find_value(@values, value, fn {key, wire} -> if wire == value, do: key end)
+end
+
 defmodule Inttegro.Payouts.FailureReason do
   @moduledoc """
   Stable, caller-safe reasons that a payout failed.
@@ -230,13 +259,14 @@ defmodule Inttegro.Payouts.BalanceTransaction do
   Describes one balance transaction that funded a payout, including both the
   source's original amount and the exact amount allocated to this payout.
   """
-  @enforce_keys [:allocated_amount, :amount, :id]
-  defstruct allocated_amount: nil, amount: nil, id: nil
+  @enforce_keys [:allocated_amount, :amount, :id, :status]
+  defstruct allocated_amount: nil, amount: nil, id: nil, status: nil
 
   @type t :: %__MODULE__{
           allocated_amount: Inttegro.Money.Amount.t(),
           amount: Inttegro.Money.Amount.t(),
-          id: String.t()
+          id: String.t(),
+          status: Inttegro.Payouts.BalanceTransactionStatus.t()
         }
 
   @doc false
@@ -245,7 +275,8 @@ defmodule Inttegro.Payouts.BalanceTransaction do
     %__MODULE__{
       allocated_amount: Inttegro.Money.Amount.from_map(Map.fetch!(map, "allocated_amount")),
       amount: Inttegro.Money.Amount.from_map(Map.fetch!(map, "amount")),
-      id: Map.fetch!(map, "id")
+      id: Map.fetch!(map, "id"),
+      status: Inttegro.Payouts.BalanceTransactionStatus.decode(Map.fetch!(map, "status"))
     }
   end
 
@@ -255,7 +286,8 @@ defmodule Inttegro.Payouts.BalanceTransaction do
     %{
       "allocated_amount" => Inttegro.Codec.encode(value.allocated_amount),
       "amount" => Inttegro.Codec.encode(value.amount),
-      "id" => Inttegro.Codec.encode(value.id)
+      "id" => Inttegro.Codec.encode(value.id),
+      "status" => Inttegro.Payouts.BalanceTransactionStatus.encode(value.status)
     }
   end
 end

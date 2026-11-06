@@ -252,6 +252,7 @@ defmodule Inttegro.Apps.Application do
             updated_at: nil,
             archived_at: nil,
             capabilities: nil,
+            children_policy: nil,
             secret_key: nil,
             relationship: nil,
             operating_policy: nil
@@ -266,6 +267,7 @@ defmodule Inttegro.Apps.Application do
           updated_at: DateTime.t() | nil,
           archived_at: DateTime.t() | nil,
           capabilities: map(),
+          children_policy: Inttegro.ChildrenPolicies.ChildrenPolicy.t() | nil,
           secret_key: Inttegro.Apps.ApplicationSecretKey.t() | nil,
           relationship: Inttegro.Apps.ApplicationRelationship.t() | nil,
           operating_policy: Inttegro.OperatingPolicies.ApplicationPolicy.t() | nil
@@ -294,6 +296,11 @@ defmodule Inttegro.Apps.Application do
           else: Inttegro.Codec.decode_timestamp(Map.get(map, "archived_at"))
         ),
       capabilities: Map.fetch!(map, "capabilities"),
+      children_policy:
+        if(is_nil(Map.get(map, "children_policy")),
+          do: nil,
+          else: Inttegro.ChildrenPolicies.ChildrenPolicy.from_map(Map.get(map, "children_policy"))
+        ),
       secret_key:
         if(is_nil(Map.get(map, "secret_key")),
           do: nil,
@@ -330,6 +337,11 @@ defmodule Inttegro.Apps.Application do
       "archived_at" =>
         if(is_nil(value.archived_at), do: nil, else: Inttegro.Codec.encode(value.archived_at)),
       "capabilities" => Inttegro.Codec.encode(value.capabilities),
+      "children_policy" =>
+        if(is_nil(value.children_policy),
+          do: nil,
+          else: Inttegro.Codec.encode(value.children_policy)
+        ),
       "secret_key" =>
         if(is_nil(value.secret_key), do: nil, else: Inttegro.Codec.encode(value.secret_key)),
       "relationship" =>

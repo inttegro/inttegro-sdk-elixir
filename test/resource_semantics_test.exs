@@ -44,6 +44,19 @@ defmodule Inttegro.ResourceSemanticsTest do
     assert Inttegro.Customers.Customer.to_map(customer)["fingerprint"] == "cfp_v1_app_buyer"
   end
 
+  test "payout contributions expose their typed allocation status" do
+    contribution =
+      Inttegro.Payouts.BalanceTransaction.from_map(%{
+        "allocated_amount" => %{"currency" => "ghs", "value" => 12_500},
+        "amount" => %{"currency" => "ghs", "value" => 20_000},
+        "id" => "bt_123",
+        "status" => "reserved"
+      })
+
+    assert contribution.status == :reserved
+    assert Inttegro.Payouts.BalanceTransaction.to_map(contribution)["status"] == "reserved"
+  end
+
   test "catalog and payment methods answer protocol questions" do
     intent =
       Inttegro.PurchaseIntents.PurchaseIntent.new!(
@@ -131,24 +144,24 @@ defmodule Inttegro.ResourceSemanticsTest do
            }
   end
 
-  test "policy aging specifications expose public_id on the response wire contract" do
+  test "policy aging specifications expose id on the response wire contract" do
     children =
       Inttegro.ChildrenPolicies.BTAgingSpec.from_map(%{
-        "public_id" => "bt_aging_spec_immediate",
+        "id" => "bt_aging_spec_immediate",
         "t_plus" => "0h"
       })
 
     operating =
       Inttegro.OperatingPolicies.BTAgingSpec.from_map(%{
-        "public_id" => "bt_aging_spec_168_hourly",
+        "id" => "bt_aging_spec_168_hourly",
         "t_plus" => "168h"
       })
 
-    assert children.public_id == "bt_aging_spec_immediate"
-    assert operating.public_id == "bt_aging_spec_168_hourly"
+    assert children.id == "bt_aging_spec_immediate"
+    assert operating.id == "bt_aging_spec_168_hourly"
 
     assert Inttegro.OperatingPolicies.BTAgingSpec.to_map(operating) == %{
-             "public_id" => "bt_aging_spec_168_hourly",
+             "id" => "bt_aging_spec_168_hourly",
              "t_plus" => "168h"
            }
   end

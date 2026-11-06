@@ -1,10 +1,10 @@
 defmodule Inttegro.ChildrenPolicies.BTAgingSpec do
   @moduledoc "One platform-owned balance-transaction aging option allowed by a children policy."
-  @enforce_keys [:public_id, :t_plus]
-  defstruct [:public_id, :t_plus]
-  @type t :: %__MODULE__{public_id: String.t(), t_plus: String.t()}
+  @enforce_keys [:id, :t_plus]
+  defstruct [:id, :t_plus]
+  @type t :: %__MODULE__{id: String.t(), t_plus: String.t()}
   def from_map(map),
-    do: %__MODULE__{public_id: Map.fetch!(map, "public_id"), t_plus: Map.fetch!(map, "t_plus")}
+    do: %__MODULE__{id: Map.fetch!(map, "id"), t_plus: Map.fetch!(map, "t_plus")}
 end
 
 defmodule Inttegro.ChildrenPolicies.PaymentMethodCapabilities do
