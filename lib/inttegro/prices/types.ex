@@ -2,12 +2,12 @@
 
 defmodule Inttegro.Prices.Catalog do
   @moduledoc Inttegro.Docs.module_doc(__MODULE__, :domain)
-  @enforce_keys [:id, :active, :nominal, :created_at]
+  @enforce_keys [:id, :active, :fixed_amount, :created_at]
   defstruct id: nil,
             label: nil,
             about: nil,
             active: nil,
-            nominal: nil,
+            fixed_amount: nil,
             product_id: nil,
             product: nil,
             created_at: nil,
@@ -20,7 +20,7 @@ defmodule Inttegro.Prices.Catalog do
           label: String.t() | nil,
           about: String.t() | nil,
           active: boolean(),
-          nominal: Inttegro.Money.Amount.t(),
+          fixed_amount: Inttegro.Money.Amount.t(),
           product_id: String.t() | nil,
           product: Inttegro.Prices.EmbeddedProduct.t() | nil,
           created_at: DateTime.t(),
@@ -38,7 +38,7 @@ defmodule Inttegro.Prices.Catalog do
       label: if(is_nil(Map.get(map, "label")), do: nil, else: Map.get(map, "label")),
       about: if(is_nil(Map.get(map, "about")), do: nil, else: Map.get(map, "about")),
       active: Map.fetch!(map, "active"),
-      nominal: Inttegro.Money.Amount.from_map(Map.fetch!(map, "nominal")),
+      fixed_amount: Inttegro.Money.Amount.from_map(Map.fetch!(map, "fixed_amount")),
       product_id:
         if(is_nil(Map.get(map, "product_id")), do: nil, else: Map.get(map, "product_id")),
       product:
@@ -68,7 +68,7 @@ defmodule Inttegro.Prices.Catalog do
       "label" => if(is_nil(value.label), do: nil, else: Inttegro.Codec.encode(value.label)),
       "about" => if(is_nil(value.about), do: nil, else: Inttegro.Codec.encode(value.about)),
       "active" => Inttegro.Codec.encode(value.active),
-      "nominal" => Inttegro.Codec.encode(value.nominal),
+      "fixed_amount" => Inttegro.Codec.encode(value.fixed_amount),
       "product_id" =>
         if(is_nil(value.product_id), do: nil, else: Inttegro.Codec.encode(value.product_id)),
       "product" => if(is_nil(value.product), do: nil, else: Inttegro.Codec.encode(value.product)),
@@ -477,12 +477,12 @@ end
 
 defmodule Inttegro.Prices.PageItem do
   @moduledoc Inttegro.Docs.module_doc(__MODULE__, :domain)
-  @enforce_keys [:id, :active, :nominal, :created_at]
+  @enforce_keys [:id, :active, :fixed_amount, :created_at]
   defstruct id: nil,
             label: nil,
             about: nil,
             active: nil,
-            nominal: nil,
+            fixed_amount: nil,
             product_id: nil,
             product: nil,
             created_at: nil,
@@ -495,7 +495,7 @@ defmodule Inttegro.Prices.PageItem do
           label: String.t() | nil,
           about: String.t() | nil,
           active: boolean(),
-          nominal: Inttegro.Money.Amount.t(),
+          fixed_amount: Inttegro.Money.Amount.t(),
           product_id: String.t() | nil,
           product: Inttegro.Prices.EmbeddedProduct.t() | nil,
           created_at: DateTime.t(),
@@ -513,7 +513,7 @@ defmodule Inttegro.Prices.PageItem do
       label: if(is_nil(Map.get(map, "label")), do: nil, else: Map.get(map, "label")),
       about: if(is_nil(Map.get(map, "about")), do: nil, else: Map.get(map, "about")),
       active: Map.fetch!(map, "active"),
-      nominal: Inttegro.Money.Amount.from_map(Map.fetch!(map, "nominal")),
+      fixed_amount: Inttegro.Money.Amount.from_map(Map.fetch!(map, "fixed_amount")),
       product_id:
         if(is_nil(Map.get(map, "product_id")), do: nil, else: Map.get(map, "product_id")),
       product:
@@ -543,7 +543,7 @@ defmodule Inttegro.Prices.PageItem do
       "label" => if(is_nil(value.label), do: nil, else: Inttegro.Codec.encode(value.label)),
       "about" => if(is_nil(value.about), do: nil, else: Inttegro.Codec.encode(value.about)),
       "active" => Inttegro.Codec.encode(value.active),
-      "nominal" => Inttegro.Codec.encode(value.nominal),
+      "fixed_amount" => Inttegro.Codec.encode(value.fixed_amount),
       "product_id" =>
         if(is_nil(value.product_id), do: nil, else: Inttegro.Codec.encode(value.product_id)),
       "product" => if(is_nil(value.product), do: nil, else: Inttegro.Codec.encode(value.product)),

@@ -1354,15 +1354,15 @@ end
 
 defmodule Inttegro.Products.PriceSummary do
   @moduledoc Inttegro.Docs.module_doc(__MODULE__, :domain)
-  @enforce_keys [:id, :active, :nominal]
-  defstruct id: nil, active: nil, label: nil, nominal: nil
+  @enforce_keys [:id, :active, :fixed_amount]
+  defstruct id: nil, active: nil, label: nil, fixed_amount: nil
 
   @typedoc Inttegro.Docs.type_doc(__MODULE__, :domain)
   @type t :: %__MODULE__{
           id: String.t(),
           active: boolean(),
           label: String.t() | nil,
-          nominal: Inttegro.Money.Amount.t()
+          fixed_amount: Inttegro.Money.Amount.t()
         }
   @doc Inttegro.Docs.constructor_doc(__MODULE__)
   @spec new!(map() | keyword()) :: t()
@@ -1374,7 +1374,7 @@ defmodule Inttegro.Products.PriceSummary do
       id: Map.fetch!(map, "id"),
       active: Map.fetch!(map, "active"),
       label: if(is_nil(Map.get(map, "label")), do: nil, else: Map.get(map, "label")),
-      nominal: Inttegro.Money.Amount.from_map(Map.fetch!(map, "nominal"))
+      fixed_amount: Inttegro.Money.Amount.from_map(Map.fetch!(map, "fixed_amount"))
     }
   end
 
@@ -1385,7 +1385,7 @@ defmodule Inttegro.Products.PriceSummary do
       "id" => Inttegro.Codec.encode(value.id),
       "active" => Inttegro.Codec.encode(value.active),
       "label" => if(is_nil(value.label), do: nil, else: Inttegro.Codec.encode(value.label)),
-      "nominal" => Inttegro.Codec.encode(value.nominal)
+      "fixed_amount" => Inttegro.Codec.encode(value.fixed_amount)
     }
     |> Enum.reject(fn {_key, item} -> is_nil(item) end)
     |> Map.new()
