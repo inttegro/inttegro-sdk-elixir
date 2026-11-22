@@ -272,12 +272,11 @@ end
 
 defmodule Inttegro.Invoices.OrderDocumentDeliveryFailure do
   @moduledoc Inttegro.Docs.module_doc(__MODULE__, :domain)
-  defstruct channel: nil, error: nil
+  defstruct channel: nil
 
   @typedoc Inttegro.Docs.type_doc(__MODULE__, :domain)
   @type t :: %__MODULE__{
-          channel: Inttegro.Invoices.DeliveryChannel.t() | nil,
-          error: String.t() | nil
+          channel: Inttegro.Invoices.DeliveryChannel.t() | nil
         }
   @doc Inttegro.Docs.constructor_doc(__MODULE__)
   @spec new!(map() | keyword()) :: t()
@@ -290,8 +289,7 @@ defmodule Inttegro.Invoices.OrderDocumentDeliveryFailure do
         if(is_nil(Map.get(map, "channel")),
           do: nil,
           else: Inttegro.Invoices.DeliveryChannel.decode(Map.get(map, "channel"))
-        ),
-      error: if(is_nil(Map.get(map, "error")), do: nil, else: Map.get(map, "error"))
+        )
     }
   end
 
@@ -303,8 +301,7 @@ defmodule Inttegro.Invoices.OrderDocumentDeliveryFailure do
         if(is_nil(value.channel),
           do: nil,
           else: Inttegro.Invoices.DeliveryChannel.encode(value.channel)
-        ),
-      "error" => if(is_nil(value.error), do: nil, else: Inttegro.Codec.encode(value.error))
+        )
     }
     |> Enum.reject(fn {_key, item} -> is_nil(item) end)
     |> Map.new()
@@ -368,6 +365,119 @@ defmodule Inttegro.Invoices.OrderReceiptFormat do
     do: %{"web" => Inttegro.Codec.encode(value.web), "pdf" => Inttegro.Codec.encode(value.pdf)}
 end
 
+defmodule Inttegro.Invoices.OrderDocumentDeliveryChannelSummary do
+  @moduledoc """
+  Summarizes accepted invoice or receipt deliveries for one channel.
+
+  `count` is the number accepted for delivery, while `latest_sent_at` records
+  when the most recent accepted delivery was sent.
+  """
+  @enforce_keys [:count, :latest_sent_at]
+  defstruct count: nil, latest_sent_at: nil
+
+  @type t :: %__MODULE__{count: non_neg_integer(), latest_sent_at: DateTime.t()}
+
+  @spec from_map(map()) :: t()
+  def from_map(map),
+    do: %__MODULE__{
+      count: Map.fetch!(map, "count"),
+      latest_sent_at: Inttegro.Codec.decode_timestamp(Map.fetch!(map, "latest_sent_at"))
+    }
+
+  @spec to_map(t()) :: map()
+  def to_map(value),
+    do: %{
+      "count" => value.count,
+      "latest_sent_at" => Inttegro.Codec.encode(value.latest_sent_at)
+    }
+end
+
+defmodule Inttegro.Invoices.OrderDocumentDeliverySummaryChannels do
+  @moduledoc """
+  Groups accepted invoice or receipt delivery totals by channel.
+
+  Email and SMS summaries are optional because only channels used for the
+  document appear in the response.
+  """
+  defstruct email: nil, sms: nil
+
+  @type t :: %__MODULE__{
+          email: Inttegro.Invoices.OrderDocumentDeliveryChannelSummary.t() | nil,
+          sms: Inttegro.Invoices.OrderDocumentDeliveryChannelSummary.t() | nil
+        }
+
+  @spec from_map(map()) :: t()
+  def from_map(map),
+    do: %__MODULE__{
+      email:
+        if(is_nil(Map.get(map, "email")),
+          do: nil,
+          else:
+            Inttegro.Invoices.OrderDocumentDeliveryChannelSummary.from_map(Map.get(map, "email"))
+        ),
+      sms:
+        if(is_nil(Map.get(map, "sms")),
+          do: nil,
+          else:
+            Inttegro.Invoices.OrderDocumentDeliveryChannelSummary.from_map(Map.get(map, "sms"))
+        )
+    }
+
+  @spec to_map(t()) :: map()
+  def to_map(value) do
+    %{
+      "email" =>
+        if(is_nil(value.email),
+          do: nil,
+          else: Inttegro.Invoices.OrderDocumentDeliveryChannelSummary.to_map(value.email)
+        ),
+      "sms" =>
+        if(is_nil(value.sms),
+          do: nil,
+          else: Inttegro.Invoices.OrderDocumentDeliveryChannelSummary.to_map(value.sms)
+        )
+    }
+    |> Enum.reject(fn {_key, item} -> is_nil(item) end)
+    |> Map.new()
+  end
+end
+
+defmodule Inttegro.Invoices.OrderDocumentDeliverySummary do
+  @moduledoc """
+  Aggregates accepted invoice or receipt deliveries across all channels.
+
+  It contains the overall accepted delivery count and latest send time, plus
+  per-channel summaries for email and SMS when those channels were used.
+  """
+  @enforce_keys [:channels, :latest_sent_at, :total_count]
+  defstruct channels: nil, latest_sent_at: nil, total_count: nil
+
+  @type t :: %__MODULE__{
+          channels: Inttegro.Invoices.OrderDocumentDeliverySummaryChannels.t(),
+          latest_sent_at: DateTime.t(),
+          total_count: pos_integer()
+        }
+
+  @spec from_map(map()) :: t()
+  def from_map(map),
+    do: %__MODULE__{
+      channels:
+        Inttegro.Invoices.OrderDocumentDeliverySummaryChannels.from_map(
+          Map.fetch!(map, "channels")
+        ),
+      latest_sent_at: Inttegro.Codec.decode_timestamp(Map.fetch!(map, "latest_sent_at")),
+      total_count: Map.fetch!(map, "total_count")
+    }
+
+  @spec to_map(t()) :: map()
+  def to_map(value),
+    do: %{
+      "channels" => Inttegro.Invoices.OrderDocumentDeliverySummaryChannels.to_map(value.channels),
+      "latest_sent_at" => Inttegro.Codec.encode(value.latest_sent_at),
+      "total_count" => value.total_count
+    }
+end
+
 defmodule Inttegro.Invoices.OrderReceipt do
   @moduledoc Inttegro.Docs.module_doc(__MODULE__, :domain)
   @enforce_keys [:format]
@@ -376,7 +486,7 @@ defmodule Inttegro.Invoices.OrderReceipt do
   @type t :: %__MODULE__{
           format: Inttegro.Invoices.OrderReceiptFormat.t(),
           number: String.t() | nil,
-          delivery_summary: map() | nil
+          delivery_summary: Inttegro.Invoices.OrderDocumentDeliverySummary.t() | nil
         }
 
   @spec new!(map() | keyword()) :: t()
@@ -387,7 +497,14 @@ defmodule Inttegro.Invoices.OrderReceipt do
     %__MODULE__{
       format: Inttegro.Invoices.OrderReceiptFormat.from_map(Map.fetch!(map, "format")),
       number: Map.get(map, "number"),
-      delivery_summary: Map.get(map, "delivery_summary")
+      delivery_summary:
+        if(is_nil(Map.get(map, "delivery_summary")),
+          do: nil,
+          else:
+            Inttegro.Invoices.OrderDocumentDeliverySummary.from_map(
+              Map.get(map, "delivery_summary")
+            )
+        )
     }
   end
 
@@ -396,7 +513,11 @@ defmodule Inttegro.Invoices.OrderReceipt do
     %{
       "format" => Inttegro.Codec.encode(value.format),
       "number" => value.number,
-      "delivery_summary" => value.delivery_summary
+      "delivery_summary" =>
+        if(is_nil(value.delivery_summary),
+          do: nil,
+          else: Inttegro.Invoices.OrderDocumentDeliverySummary.to_map(value.delivery_summary)
+        )
     }
     |> Enum.reject(fn {_key, item} -> is_nil(item) end)
     |> Map.new()

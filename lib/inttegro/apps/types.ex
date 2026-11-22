@@ -241,6 +241,49 @@ defmodule Inttegro.Apps.Capabilities do
     }
 end
 
+defmodule Inttegro.Apps.CapabilityProjection do
+  @moduledoc """
+  Known capability states currently exposed on an application resource.
+
+  Newly created applications can have neither capability while setup is still
+  in progress.
+  """
+  defstruct payments: nil, payouts: nil
+
+  @type t :: %__MODULE__{
+          payments: Inttegro.Apps.Capability.t() | nil,
+          payouts: Inttegro.Apps.Capability.t() | nil
+        }
+
+  @spec from_map(map()) :: t()
+  def from_map(map) when is_map(map) do
+    %__MODULE__{
+      payments:
+        if(is_nil(Map.get(map, "payments")),
+          do: nil,
+          else: Inttegro.Apps.Capability.from_map(Map.get(map, "payments"))
+        ),
+      payouts:
+        if(is_nil(Map.get(map, "payouts")),
+          do: nil,
+          else: Inttegro.Apps.Capability.from_map(Map.get(map, "payouts"))
+        )
+    }
+  end
+
+  @spec to_map(t()) :: map()
+  def to_map(value) do
+    %{
+      "payments" =>
+        if(is_nil(value.payments), do: nil, else: Inttegro.Apps.Capability.to_map(value.payments)),
+      "payouts" =>
+        if(is_nil(value.payouts), do: nil, else: Inttegro.Apps.Capability.to_map(value.payouts))
+    }
+    |> Enum.reject(fn {_key, item} -> is_nil(item) end)
+    |> Map.new()
+  end
+end
+
 defmodule Inttegro.Apps.Application do
   @moduledoc Inttegro.Docs.module_doc(__MODULE__, :domain)
   @enforce_keys [:id, :name, :created_at, :capabilities]
@@ -266,7 +309,7 @@ defmodule Inttegro.Apps.Application do
           created_at: DateTime.t(),
           updated_at: DateTime.t() | nil,
           archived_at: DateTime.t() | nil,
-          capabilities: map(),
+          capabilities: Inttegro.Apps.CapabilityProjection.t(),
           children_policy: Inttegro.ChildrenPolicies.ChildrenPolicy.t() | nil,
           secret_key: Inttegro.Apps.ApplicationSecretKey.t() | nil,
           relationship: Inttegro.Apps.ApplicationRelationship.t() | nil,
@@ -295,7 +338,7 @@ defmodule Inttegro.Apps.Application do
           do: nil,
           else: Inttegro.Codec.decode_timestamp(Map.get(map, "archived_at"))
         ),
-      capabilities: Map.fetch!(map, "capabilities"),
+      capabilities: Inttegro.Apps.CapabilityProjection.from_map(Map.fetch!(map, "capabilities")),
       children_policy:
         if(is_nil(Map.get(map, "children_policy")),
           do: nil,
@@ -336,7 +379,7 @@ defmodule Inttegro.Apps.Application do
         if(is_nil(value.updated_at), do: nil, else: Inttegro.Codec.encode(value.updated_at)),
       "archived_at" =>
         if(is_nil(value.archived_at), do: nil, else: Inttegro.Codec.encode(value.archived_at)),
-      "capabilities" => Inttegro.Codec.encode(value.capabilities),
+      "capabilities" => Inttegro.Apps.CapabilityProjection.to_map(value.capabilities),
       "children_policy" =>
         if(is_nil(value.children_policy),
           do: nil,

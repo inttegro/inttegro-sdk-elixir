@@ -51,6 +51,89 @@ defmodule Inttegro.FinancialAccounts.CreateRequest do
   end
 end
 
+defmodule Inttegro.FinancialAccounts.DoshAccount do
+  @moduledoc """
+  Public marker for a connected Dosh financial account.
+
+  The API intentionally returns an empty object here. Credentials, provider
+  identifiers, and other private connection details are never exposed.
+  """
+  defstruct []
+
+  @type t :: %__MODULE__{}
+  @spec from_map(map()) :: t()
+  def from_map(map) when map == %{}, do: %__MODULE__{}
+  @spec to_map(t()) :: map()
+  def to_map(%__MODULE__{}), do: %{}
+end
+
+defmodule Inttegro.FinancialAccounts.VerificationRequest do
+  @moduledoc """
+  Identifies the request used to verify a financial account.
+
+  The request identifier, verification type, and mechanism let an integration
+  correlate the public verification state without inspecting provider data.
+  """
+  defstruct id: nil, mechanism: nil, type: nil
+
+  @type t :: %__MODULE__{
+          id: String.t() | nil,
+          mechanism: String.t() | nil,
+          type: String.t() | nil
+        }
+  @spec from_map(map()) :: t()
+  def from_map(map),
+    do: %__MODULE__{
+      id: Map.get(map, "id"),
+      mechanism: Map.get(map, "mechanism"),
+      type: Map.get(map, "type")
+    }
+
+  @spec to_map(t()) :: map()
+  def to_map(value) do
+    %{"id" => value.id, "mechanism" => value.mechanism, "type" => value.type}
+    |> Enum.reject(fn {_key, item} -> is_nil(item) end)
+    |> Map.new()
+  end
+end
+
+defmodule Inttegro.FinancialAccounts.Verification do
+  @moduledoc """
+  Describes the verification lifecycle for a financial account.
+
+  `initiated_at` records when verification began, `completed_at` is present
+  after success, and `request` identifies the public verification request.
+  """
+  @enforce_keys [:initiated_at, :request]
+  defstruct initiated_at: nil, completed_at: nil, request: nil
+
+  @type t :: %__MODULE__{
+          initiated_at: DateTime.t(),
+          completed_at: DateTime.t() | nil,
+          request: Inttegro.FinancialAccounts.VerificationRequest.t()
+        }
+
+  @spec from_map(map()) :: t()
+  def from_map(map),
+    do: %__MODULE__{
+      initiated_at: Inttegro.Codec.decode_timestamp(Map.fetch!(map, "initiated_at")),
+      completed_at: Inttegro.Codec.decode_timestamp(Map.get(map, "completed_at")),
+      request: Inttegro.FinancialAccounts.VerificationRequest.from_map(Map.fetch!(map, "request"))
+    }
+
+  @spec to_map(t()) :: map()
+  def to_map(value) do
+    %{
+      "initiated_at" => Inttegro.Codec.encode(value.initiated_at),
+      "completed_at" =>
+        if(is_nil(value.completed_at), do: nil, else: Inttegro.Codec.encode(value.completed_at)),
+      "request" => Inttegro.FinancialAccounts.VerificationRequest.to_map(value.request)
+    }
+    |> Enum.reject(fn {_key, item} -> is_nil(item) end)
+    |> Map.new()
+  end
+end
+
 defmodule Inttegro.FinancialAccounts.FinancialAccount do
   @moduledoc Inttegro.Docs.module_doc(__MODULE__, :domain)
   @enforce_keys [:created_at, :currency, :id, :type]
@@ -91,10 +174,10 @@ defmodule Inttegro.FinancialAccounts.FinancialAccount do
           reference: String.t() | nil,
           supplied: Inttegro.Shared.ResourceSupply.t() | nil,
           type: Inttegro.FinancialAccounts.Type.t(),
-          verification: %{optional(String.t()) => term()} | nil,
+          verification: Inttegro.FinancialAccounts.Verification.t() | nil,
           bank_account: Inttegro.FinancialAccounts.Bank.t() | nil,
           disconnected_at: DateTime.t() | nil,
-          dosh_account: %{optional(String.t()) => term()} | nil,
+          dosh_account: Inttegro.FinancialAccounts.DoshAccount.t() | nil,
           owner: Inttegro.FinancialAccounts.Owner.t() | nil,
           wallet: Inttegro.FinancialAccounts.Wallet.t() | nil
         }
@@ -154,7 +237,7 @@ defmodule Inttegro.FinancialAccounts.FinancialAccount do
       verification:
         if(is_nil(Map.get(map, "verification")),
           do: nil,
-          else: Map.new(Map.get(map, "verification"), fn {key, value} -> {key, value} end)
+          else: Inttegro.FinancialAccounts.Verification.from_map(Map.get(map, "verification"))
         ),
       bank_account:
         if(is_nil(Map.get(map, "bank_account")),
@@ -169,7 +252,7 @@ defmodule Inttegro.FinancialAccounts.FinancialAccount do
       dosh_account:
         if(is_nil(Map.get(map, "dosh_account")),
           do: nil,
-          else: Map.new(Map.get(map, "dosh_account"), fn {key, value} -> {key, value} end)
+          else: Inttegro.FinancialAccounts.DoshAccount.from_map(Map.get(map, "dosh_account"))
         ),
       owner:
         if(is_nil(Map.get(map, "owner")),
@@ -219,10 +302,7 @@ defmodule Inttegro.FinancialAccounts.FinancialAccount do
       "verification" =>
         if(is_nil(value.verification),
           do: nil,
-          else:
-            Map.new(value.verification, fn {key, value} ->
-              {to_string(key), Inttegro.Codec.encode(value)}
-            end)
+          else: Inttegro.FinancialAccounts.Verification.to_map(value.verification)
         ),
       "bank_account" =>
         if(is_nil(value.bank_account), do: nil, else: Inttegro.Codec.encode(value.bank_account)),
@@ -234,10 +314,7 @@ defmodule Inttegro.FinancialAccounts.FinancialAccount do
       "dosh_account" =>
         if(is_nil(value.dosh_account),
           do: nil,
-          else:
-            Map.new(value.dosh_account, fn {key, value} ->
-              {to_string(key), Inttegro.Codec.encode(value)}
-            end)
+          else: Inttegro.FinancialAccounts.DoshAccount.to_map(value.dosh_account)
         ),
       "owner" => if(is_nil(value.owner), do: nil, else: Inttegro.Codec.encode(value.owner)),
       "wallet" => if(is_nil(value.wallet), do: nil, else: Inttegro.Codec.encode(value.wallet))
@@ -671,7 +748,7 @@ defmodule Inttegro.FinancialAccounts.DoshRequest do
           owner: Inttegro.FinancialAccounts.OwnerInput.t(),
           reference: String.t(),
           type: Inttegro.FinancialAccounts.Type.t(),
-          dosh_account: %{optional(String.t()) => term()}
+          dosh_account: Inttegro.FinancialAccounts.DoshAccount.t()
         }
   @doc Inttegro.Docs.constructor_doc(__MODULE__)
   @spec new!(map() | keyword()) :: t()
@@ -708,7 +785,8 @@ defmodule Inttegro.FinancialAccounts.DoshRequest do
       owner: Inttegro.FinancialAccounts.OwnerInput.from_map(Map.fetch!(map, "owner")),
       reference: Map.fetch!(map, "reference"),
       type: Inttegro.FinancialAccounts.Type.decode(Map.fetch!(map, "type")),
-      dosh_account: Map.new(Map.fetch!(map, "dosh_account"), fn {key, value} -> {key, value} end)
+      dosh_account:
+        Inttegro.FinancialAccounts.DoshAccount.from_map(Map.fetch!(map, "dosh_account"))
     }
   end
 
@@ -735,10 +813,7 @@ defmodule Inttegro.FinancialAccounts.DoshRequest do
       "owner" => Inttegro.Codec.encode(value.owner),
       "reference" => Inttegro.Codec.encode(value.reference),
       "type" => Inttegro.FinancialAccounts.Type.encode(value.type),
-      "dosh_account" =>
-        Map.new(value.dosh_account, fn {key, value} ->
-          {to_string(key), Inttegro.Codec.encode(value)}
-        end)
+      "dosh_account" => Inttegro.FinancialAccounts.DoshAccount.to_map(value.dosh_account)
     }
     |> Enum.reject(fn {_key, item} -> is_nil(item) end)
     |> Map.new()
