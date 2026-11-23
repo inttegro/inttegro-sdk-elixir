@@ -131,6 +131,27 @@ defmodule Inttegro.Chimes do
   end
 
   @doc """
+  Retrieve the effective, non-secret SMS and email delivery settings.
+  """
+  @spec settings(Client.t(), keyword()) ::
+          {:ok, Inttegro.Chimes.Settings.t()} | {:error, Exception.t()}
+  def settings(client, options \\ []) do
+    with {:ok, value} <-
+           Client.request(
+             client,
+             "POST",
+             "/chimes/settings",
+             %{},
+             options,
+             "chimes.settings",
+             "settings",
+             true
+           ) do
+      {:ok, Inttegro.Chimes.Settings.from_map(value)}
+    end
+  end
+
+  @doc """
   Schedule one or more SMS or email notifications for future delivery.
 
   ## Parameters

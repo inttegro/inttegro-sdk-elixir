@@ -1656,3 +1656,89 @@ defmodule Inttegro.Chimes.SendRequestMeta do
     |> Map.new()
   end
 end
+
+defmodule Inttegro.Chimes.SMSSettings do
+  @moduledoc """
+  Effective SMS delivery settings returned by Inttegro, including the platform fallback sender ID
+  and the inclusive public character-length limits accepted for a custom sender.
+  """
+  @enforce_keys [:default_sender, :min_sender_char_len, :max_sender_char_len]
+  defstruct [:default_sender, :min_sender_char_len, :max_sender_char_len]
+
+  @type t :: %__MODULE__{
+          default_sender: String.t(),
+          min_sender_char_len: non_neg_integer(),
+          max_sender_char_len: non_neg_integer()
+        }
+
+  @spec from_map(map()) :: t()
+  def from_map(map) do
+    %__MODULE__{
+      default_sender: Map.fetch!(map, "default_sender"),
+      min_sender_char_len: Map.fetch!(map, "min_sender_char_len"),
+      max_sender_char_len: Map.fetch!(map, "max_sender_char_len")
+    }
+  end
+
+  @spec to_map(t()) :: map()
+  def to_map(value) do
+    %{
+      "default_sender" => value.default_sender,
+      "min_sender_char_len" => value.min_sender_char_len,
+      "max_sender_char_len" => value.max_sender_char_len
+    }
+  end
+end
+
+defmodule Inttegro.Chimes.EmailSettings do
+  @moduledoc """
+  Effective email delivery settings returned by Inttegro, including the platform fallback From
+  address and the addresses authorized for reusable message templates.
+  """
+  @enforce_keys [:default_from, :allowed_from]
+  defstruct [:default_from, :allowed_from]
+
+  @type t :: %__MODULE__{default_from: String.t(), allowed_from: [String.t()]}
+
+  @spec from_map(map()) :: t()
+  def from_map(map) do
+    %__MODULE__{
+      default_from: Map.fetch!(map, "default_from"),
+      allowed_from: Map.fetch!(map, "allowed_from")
+    }
+  end
+
+  @spec to_map(t()) :: map()
+  def to_map(value),
+    do: %{"default_from" => value.default_from, "allowed_from" => value.allowed_from}
+end
+
+defmodule Inttegro.Chimes.Settings do
+  @moduledoc """
+  Effective, non-secret Chime delivery settings. The nested SMS and email values describe the
+  public defaults and validation boundaries Inttegro applies when sending messages.
+  """
+  @enforce_keys [:sms, :email]
+  defstruct [:sms, :email]
+
+  @type t :: %__MODULE__{
+          sms: Inttegro.Chimes.SMSSettings.t(),
+          email: Inttegro.Chimes.EmailSettings.t()
+        }
+
+  @spec from_map(map()) :: t()
+  def from_map(map) do
+    %__MODULE__{
+      sms: Inttegro.Chimes.SMSSettings.from_map(Map.fetch!(map, "sms")),
+      email: Inttegro.Chimes.EmailSettings.from_map(Map.fetch!(map, "email"))
+    }
+  end
+
+  @spec to_map(t()) :: map()
+  def to_map(value) do
+    %{
+      "sms" => Inttegro.Chimes.SMSSettings.to_map(value.sms),
+      "email" => Inttegro.Chimes.EmailSettings.to_map(value.email)
+    }
+  end
+end
